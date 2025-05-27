@@ -1,8 +1,7 @@
-import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
-
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
+import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 
 export default function LoginScreen() {
   const [usuario, setUsuario] = useState([]);
