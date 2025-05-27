@@ -1,11 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import React, { useState } from 'react';
-import { TextInput } from 'react-native-gesture-handler';
 
 export default function LoginScreen() {
   const [usuario, setUsuario] = useState([]);
@@ -16,39 +13,48 @@ export default function LoginScreen() {
     email: '',
     senha: '',
   });
-  
+
+  // se usuario estiver logado mostrar o nome e email, se não, mostrar o formulario
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
+    <ScrollView>
 
-      <ThemedView>
+      <ThemedView  style={styles.homepage}>
+        {email}
         <ThemedText type="title">Login</ThemedText>
-        <TextInput>Usuário:</TextInput>
-        
+        <ThemedText>Nome de Usuário</ThemedText>
+        <TextInput style={styles.form} placeholder='Usuário'/>
+        <ThemedText>E-mail</ThemedText>
+        <TextInput style={styles.form} placeholder='E-mail'/>
+        <ThemedText>Senha</ThemedText>
+        <TextInput style={styles.form} placeholder='Senha'/>
+
+        <Button title='Login'></Button>
+        <ThemedText>Ou</ThemedText>
+        <Button title='Criar uma conta'></Button>
       </ThemedView>
       
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
   },
+  homepage: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    fontSize: 25,
+  },
+  form: {
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderRadius: 8,
+    textAlign: 'left',
+  }
 });

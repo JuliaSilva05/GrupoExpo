@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
 
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function AboutScreen() {
   return (
+    /*
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
       headerImage={
@@ -17,7 +16,8 @@ export default function AboutScreen() {
           style={styles.headerImage}
         />
       }>
-      <ThemedView>
+      */
+      <ThemedView style={styles.homepage}>
         <ThemedText type="title">Sobre</ThemedText>
         <ThemedText>Projeto para a cadeira 'Programação Web e Mobile' 2025.1</ThemedText>
         <ThemedText>Professor : Márcio Augusto Silva Bueno</ThemedText>
@@ -28,19 +28,20 @@ export default function AboutScreen() {
         <ThemedText>Matheus Veríssimo Rodrigues Pinheiro</ThemedText>
       </ThemedView>
       
-    </ParallaxScrollView>
+    //</ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  homepage: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    fontSize: 25,
+    padding:25,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+
+  centerText: {
+    textAlign: 'center',
+  }
 });
