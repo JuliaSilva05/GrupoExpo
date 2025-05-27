@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -14,30 +14,25 @@ export default function HomeScreen() {
           source={require('@/assets/images/partial-react-logo.png')}
         />
       }>
-
-      <ThemedView>
-        <ThemedText style={styles.titleContainer} type='title'>Bem-vindo ao RPG Ficha Fácil</ThemedText>
       
-        <ThemedView style={styles.stepContainer}>
-          <ThemedText>
-            O RPG Ficha Fácil é o melhor app para criar
-            fichas para seus personagens de RPG!
-          </ThemedText>
-          <ThemedText>
-            Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-            Press{' '}
-            <ThemedText type="defaultSemiBold">
-              {Platform.select({
-                ios: 'cmd + d',
-                android: 'cmd + m',
-                web: 'F12',
-              })}
-            </ThemedText>{' '}
-            to open developer tools.
-          </ThemedText>
-        </ThemedView>
-        
+      <ThemedView>
+        <ThemedText type='title'>Bem-vindo ao RPG Ficha Fácil</ThemedText>
+        <ThemedText>
+          O RPG Ficha Fácil é o melhor app para criar
+          fichas para seus personagens de RPG!
+        </ThemedText>
+        <ThemedText type='title'>Crie</ThemedText>
+        <ThemedText>
+          Use a página de criação integrada com a API D&D 5e para facilmente criar o 
+          personagem da sua imaginação.
+        </ThemedText>
+        <ThemedText type='title'>Organize</ThemedText>
+        <ThemedText>
+          Use a página dos seus personagens para agrupar todo mundo que você precisa 
+          para sua próxima jornada.
+        </ThemedText>
       </ThemedView>
+        
       
     </ParallaxScrollView>
   );
