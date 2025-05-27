@@ -14,26 +14,39 @@ export default function LoginScreen() {
     senha: '',
   });
 
+  const SignUp = () =>{
+    return(
+      <ThemedView  style={styles.homepage}>
+          <ThemedText type="title">Login</ThemedText>
+          <ThemedText>Nome de Usuário</ThemedText>
+          <TextInput style={styles.form} placeholder='Usuário'/>
+          <ThemedText>E-mail</ThemedText>
+          <TextInput style={styles.form} placeholder='E-mail'/>
+          <ThemedText>Senha</ThemedText>
+          <TextInput style={styles.form} placeholder='Senha'/>
+
+          <Button title='Login'></Button>
+          <ThemedText>Ou</ThemedText>
+          <Button title='Criar uma conta'></Button>
+        </ThemedView>
+    )
+  }
+  const Logged = () => {
+    return (
+      <>
+        <ThemedText>{usuario}</ThemedText>
+        <ThemedText>{email}</ThemedText>
+        <Button title='Logout'/>
+      </>
+    )
+  }
+
   // se usuario estiver logado mostrar o nome e email, se não, mostrar o formulario
 
   return (
     <ScrollView>
-
-      <ThemedView  style={styles.homepage}>
-        {email}
-        <ThemedText type="title">Login</ThemedText>
-        <ThemedText>Nome de Usuário</ThemedText>
-        <TextInput style={styles.form} placeholder='Usuário'/>
-        <ThemedText>E-mail</ThemedText>
-        <TextInput style={styles.form} placeholder='E-mail'/>
-        <ThemedText>Senha</ThemedText>
-        <TextInput style={styles.form} placeholder='Senha'/>
-
-        <Button title='Login'></Button>
-        <ThemedText>Ou</ThemedText>
-        <Button title='Criar uma conta'></Button>
-      </ThemedView>
-      
+        <SignUp/>
+            
     </ScrollView>
   );
 }
