@@ -27,17 +27,17 @@ export default function LoginScreen() {
 
           <Button title='Login'></Button>
           <ThemedText>Ou</ThemedText>
-          <Button title='Criar uma conta'></Button>
+          <Button title='Criar conta'></Button>
         </ThemedView>
     )
   }
   const Logged = () => {
     return (
-      <>
-        <ThemedText>{usuario}</ThemedText>
-        <ThemedText>{email}</ThemedText>
+      <ThemedView style={styles.homepage}>
+        <ThemedText>//Usuário: {usuario}</ThemedText>
+        <ThemedText>//Email: {email}</ThemedText>
         <Button title='Logout'/>
-      </>
+      </ThemedView>
     )
   }
 
@@ -45,7 +45,10 @@ export default function LoginScreen() {
 
   return (
     <ScrollView>
-        <SignUp/>
+      <ThemedText>//Meu plano: {'\n'}//Se estiver logado</ThemedText>
+      <Logged/>
+      <ThemedText>//Se não estiver logado</ThemedText>
+      <SignUp/>
             
     </ScrollView>
   );
