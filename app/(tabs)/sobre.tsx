@@ -5,30 +5,19 @@ import { ThemedView } from '@/components/ThemedView';
 
 export default function AboutScreen() {
   return (
-    /*
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      */
       <ThemedView style={styles.homepage}>
-        <ThemedText type="title">Sobre</ThemedText>
-        <ThemedText>Projeto para a cadeira 'Programação Web e Mobile' 2025.1</ThemedText>
-        <ThemedText>Professor : Márcio Augusto Silva Bueno</ThemedText>
-        <ThemedText type='title'>Feito por:</ThemedText>
-        <ThemedText>Rafael Sampaio e Silva</ThemedText>
-        <ThemedText>Gabriel Martins de Souza</ThemedText>
-        <ThemedText>Júlia Silva Souto</ThemedText>
-        <ThemedText>Matheus Veríssimo Rodrigues Pinheiro</ThemedText>
+        <ThemedText style={styles.centerText}>
+          <ThemedText type="title">Sobre {'\n'}</ThemedText>
+            Projeto para a cadeira 'Programação Web e Mobile' 2025.1{'\n'}
+            Professor : Márcio Augusto Silva Bueno{'\n\n'}
+          <ThemedText type='title'>Feito por:{'\n'}</ThemedText>
+            Rafael Sampaio e Silva{'\n'}
+            Gabriel Martins de Souza{'\n'}
+            Júlia Silva Souto{'\n'}
+            Matheus Veríssimo Rodrigues Pinheiro{'\n'}
+        </ThemedText>
       </ThemedView>
       
-    //</ParallaxScrollView>
   );
 }
 

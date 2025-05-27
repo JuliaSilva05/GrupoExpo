@@ -1,9 +1,8 @@
 import { StyleSheet } from 'react-native';
 
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
 //import { getRacas, getRacaDetalhes } from '@/scripts/dndApi';
 
 
@@ -11,22 +10,11 @@ export default function CreateScreen() {
 
   
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      
+    <ScrollView>
       <ThemedView>
         <ThemedText type="title">Cadastro de Personagens de RPG</ThemedText>
       </ThemedView>
-      
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
