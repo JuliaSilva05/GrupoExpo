@@ -1,8 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
 //import { getRacas, getRacaDetalhes } from '@/scripts/dndApi';
 
 
