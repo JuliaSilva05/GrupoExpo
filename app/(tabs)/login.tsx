@@ -1,19 +1,20 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
-import { Alert, Button, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 
+/*
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Parse from 'parse/react-native.js';
 Parse.setAsyncStorage(AsyncStorage)
 Parse.initialize('CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2','lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe')
 Parse.serverURL = "https://parseapi.back4app.com/"
-
+*/
 export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-
+/*
   const createUser = async function () {
     const newNomeUsuario = nomeUsuario;
     const newEmail = email;
@@ -25,14 +26,18 @@ export default function LoginScreen() {
     try {
       await Usuario.save()
       alert("Feito!!")
+      setNomeUsuario('')
+      setEmail('')
+      setSenha('')
       
       return true;
     } catch (error) {
+      alert("Error!")
       Alert.alert("Error!")
       return false;
     }
   }
-  
+*/
 
   const SignUp = () =>{
     return(
@@ -48,8 +53,8 @@ export default function LoginScreen() {
           
           <ThemedText>E-mail</ThemedText>
           <TextInput       
+            onChangeText={setEmail}
             value={email}
-            onChangeText={setEmail}      
             style={styles.form} placeholder='E-mail'
           />
           
@@ -62,7 +67,7 @@ export default function LoginScreen() {
 
           <Button title='Login'></Button>
           <ThemedText>Ou</ThemedText>
-          <Button onPress={createUser} title='Criar conta'></Button>
+          <Button title='Criar conta'></Button>
         </ThemedView>
     )
   }
