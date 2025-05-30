@@ -1,47 +1,56 @@
+import { addUsuario, getUsuario } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
 import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
+//import Parse from 'parse/react-native.js';
+//Parse.setAsyncStorage(AsyncStorage)
 
-/*
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Parse from 'parse/react-native.js';
-Parse.setAsyncStorage(AsyncStorage)
+//Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe");
+//Parse.serverURL = "https://parseapi.back4app.com/"
 
-Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe");
-
-Parse.serverURL = "https://parseapi.back4app.com/"
-*/
 export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
-/*
-  const createUser = async function () {
-    const newNomeUsuario = nomeUsuario;
-    const newEmail = email;
-    const newSenha = senha;
-    let Usuario = new Parse.Object('Usuario');
-    Usuario.set('nomeUsuario', newNomeUsuario)
-    Usuario.set('email', newEmail)
-    Usuario.set('senha', newSenha)
-    try {
-      await Usuario.save()
-      alert("Feito!!")
+  const handleCreateAccount = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
+      alert("o nome de usuario, o e-mail e a senha são obrigatórios!")
+      return;
+    }
+    const usuario = {
+      nomeUsuario: nomeUsuario,
+      email: email,
+      senha: senha
+    }
+    const novoUsuario = await addUsuario(usuario)
+    if (novoUsuario){
+      alert("Você criou uma conta! Agora é só colocar os dados de novo e clicar em \"Login\"!")
       setNomeUsuario('')
       setEmail('')
       setSenha('')
-      
-      return true;
-    } catch (error) {
-      alert("Error!")
-      Alert.alert("Error!")
-      return false;
     }
   }
-*/
 
+  const handleLogin = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
+      alert("o nome de usuario, o e-mail e a senha são obrigatórios!")
+      return;
+    }
+    const usuario = {
+      nomeUsuario: nomeUsuario,
+      email: email,
+      senha: senha
+    }
+    const loginUsuario = await getUsuario()
+    if (loginUsuario){
+      alert(loginUsuario)
+    }
+  }
   
   const Logged = () => {
     return (
@@ -58,13 +67,14 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.homepage}>
       <ThemedText>//Meu plano: {'\n'}//Se estiver logado</ThemedText>
-      
+      <Logged/>
       <ThemedText>//Se não estiver logado</ThemedText>
       
-      <ThemedView  style={styles.homepage}>
+      <ThemedView style={styles.homepage} id='login'>
           <ThemedText type="title">Login</ThemedText>
           <ThemedText>Nome de Usuário</ThemedText>
           <TextInput
+            value={nomeUsuario}
             onChangeText={(value) => setNomeUsuario(value)}
             style={styles.form} placeholder='Usuário'
           />
@@ -72,6 +82,7 @@ export default function LoginScreen() {
           
           <ThemedText>E-mail</ThemedText>
           <TextInput       
+            value={email}
             onChangeText={(value) => setEmail(value)}
             keyboardType='email-address'
             style={styles.form} placeholder='E-mail'
@@ -80,14 +91,15 @@ export default function LoginScreen() {
           
           <ThemedText>Senha</ThemedText>
           <TextInput         
+            value={senha}
             onChangeText={(value) => setSenha(value)}
             style={styles.form} placeholder='Senha'
           />
           <ThemedText>{senha}</ThemedText>
 
-          <Button title='Login'></Button>
+          <Button onPress={handleLogin} title='Login'></Button>
           <ThemedText>Ou</ThemedText>
-          <Button title='Criar conta'></Button>
+          <Button onPress={handleCreateAccount} title='Criar conta'></Button>
         </ThemedView>
     
             
