@@ -7,13 +7,21 @@ import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Parse from 'parse/react-native.js';
 Parse.setAsyncStorage(AsyncStorage)
-Parse.initialize('CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2','lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe')
+
+Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe");
+
 Parse.serverURL = "https://parseapi.back4app.com/"
 */
 export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [form, setForm] = useState({
+    nomeUsuario: '',
+    email: '',
+    senha: '',
+  });
+
 /*
   const createUser = async function () {
     const newNomeUsuario = nomeUsuario;
@@ -47,7 +55,8 @@ export default function LoginScreen() {
           <ThemedText>Nome de Usuário</ThemedText>
           <TextInput          
             value={nomeUsuario}
-            onChangeText={setNomeUsuario}
+            //onChangeText={setNomeUsuario}
+            onChangeText={(text) => setNomeUsuario(text)}
             style={styles.form} placeholder='Usuário'
           />
           
