@@ -1,20 +1,24 @@
-import { addUsuario, getUsuario } from '@/api/index';
+//import { addUsuario, getUsuario } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
 import { Button, ScrollView, StyleSheet, TextInput } from 'react-native';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
-//import Parse from 'parse/react-native.js';
-//Parse.setAsyncStorage(AsyncStorage)
 
-//Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe");
-//Parse.serverURL = "https://parseapi.back4app.com/"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Parse from 'parse/react-native.js';
+Parse.setAsyncStorage(AsyncStorage)
+Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe");
+Parse.serverURL = "https://parseapi.back4app.com/"
 
 export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
+  const [nomeLogged, setNomeLogged] = useState('');
+  const [emailLogged, setEmailLogged] = useState('');
+
+  /*
   const handleCreateAccount = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
@@ -51,7 +55,34 @@ export default function LoginScreen() {
       alert(loginUsuario)
     }
   }
-  
+  */
+
+  const createUser = async function () {
+    const newNomeUsuario = nomeUsuario;
+    const newEmail = email;
+    const newSenha = senha;
+    let Usuario = new Parse.Object('Usuario');
+    Usuario.set('nomeUsuario', newNomeUsuario)
+    Usuario.set('email', newEmail)
+    Usuario.set('senha', newSenha)
+    try {
+      await Usuario.save()
+      alert("Feito!!")
+      setNomeUsuario('')
+      setEmail('')
+      setSenha('')
+        
+      return true;
+    } catch (error) {
+      alert("Error!")
+      return false;
+    }
+  }
+
+  const LoginUser = async function () {
+    
+  }
+
   const Logged = () => {
     return (
       <ThemedView style={styles.homepage}>
@@ -97,9 +128,9 @@ export default function LoginScreen() {
           />
           <ThemedText>{senha}</ThemedText>
 
-          <Button onPress={handleLogin} title='Login'></Button>
+          <Button  title='Login'></Button>
           <ThemedText>Ou</ThemedText>
-          <Button onPress={handleCreateAccount} title='Criar conta'></Button>
+          <Button onPress={createUser} title='Criar conta'></Button>
         </ThemedView>
     
             

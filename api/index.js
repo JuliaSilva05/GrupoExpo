@@ -1,4 +1,4 @@
-import axios from "axios";
+/*import axios from "axios";
 
 const urlUsuario = "https://parseapi.back4app.com/classes/Usuario";
 const headers = {
@@ -10,12 +10,11 @@ const headersJson = {
   "Content-Type": "application/json",
 };
 
+const [categList, setCategList] = useState([]);
 export async function addUsuario(usuario) {
   try {
     const response1 = await axios.get(urlUsuario, { headers });
-    alert(response1.data)
     alert(usuario.email)
-
     
     //const response = await axios.post(urlUsuario, usuario, { headers: headersJson });
     //return { ...usuario, ...response.data };
@@ -36,7 +35,7 @@ export async function getUsuario() {
 }
 
 
-/*
+*/
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Parse from 'parse/react-native.js';
 Parse.setAsyncStorage(AsyncStorage)
@@ -65,4 +64,3 @@ export const createUser = async function () {
     return false;
   }
 }
-*/
