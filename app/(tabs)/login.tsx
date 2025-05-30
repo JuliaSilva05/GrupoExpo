@@ -16,11 +16,6 @@ export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [form, setForm] = useState({
-    nomeUsuario: '',
-    email: '',
-    senha: '',
-  });
 
 /*
   const createUser = async function () {
@@ -47,39 +42,7 @@ export default function LoginScreen() {
   }
 */
 
-  const SignUp = () =>{
-    return(
-      <ThemedView  style={styles.homepage}>
-          <ThemedText type="title">Login</ThemedText>
-
-          <ThemedText>Nome de Usuário</ThemedText>
-          <TextInput          
-            value={nomeUsuario}
-            //onChangeText={setNomeUsuario}
-            onChangeText={(text) => setNomeUsuario(text)}
-            style={styles.form} placeholder='Usuário'
-          />
-          
-          <ThemedText>E-mail</ThemedText>
-          <TextInput       
-            onChangeText={setEmail}
-            value={email}
-            style={styles.form} placeholder='E-mail'
-          />
-          
-          <ThemedText>Senha</ThemedText>
-          <TextInput         
-            value={senha}
-            onChangeText={setSenha}    
-            style={styles.form} placeholder='Senha'
-          />
-
-          <Button title='Login'></Button>
-          <ThemedText>Ou</ThemedText>
-          <Button title='Criar conta'></Button>
-        </ThemedView>
-    )
-  }
+  
   const Logged = () => {
     return (
       <ThemedView style={styles.homepage}>
@@ -97,7 +60,36 @@ export default function LoginScreen() {
       <ThemedText>//Meu plano: {'\n'}//Se estiver logado</ThemedText>
       
       <ThemedText>//Se não estiver logado</ThemedText>
-      <SignUp/>
+      
+      <ThemedView  style={styles.homepage}>
+          <ThemedText type="title">Login</ThemedText>
+          <ThemedText>Nome de Usuário</ThemedText>
+          <TextInput
+            onChangeText={(value) => setNomeUsuario(value)}
+            style={styles.form} placeholder='Usuário'
+          />
+          <ThemedText>{nomeUsuario}</ThemedText>
+          
+          <ThemedText>E-mail</ThemedText>
+          <TextInput       
+            onChangeText={(value) => setEmail(value)}
+            keyboardType='email-address'
+            style={styles.form} placeholder='E-mail'
+          />
+          <ThemedText>{email}</ThemedText>
+          
+          <ThemedText>Senha</ThemedText>
+          <TextInput         
+            onChangeText={(value) => setSenha(value)}
+            style={styles.form} placeholder='Senha'
+          />
+          <ThemedText>{senha}</ThemedText>
+
+          <Button title='Login'></Button>
+          <ThemedText>Ou</ThemedText>
+          <Button title='Criar conta'></Button>
+        </ThemedView>
+    
             
     </ScrollView>
   );
