@@ -1,4 +1,4 @@
-import { addUsuario } from '@/api/index';
+import { addUsuario, pegarId } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
@@ -34,6 +34,9 @@ export default function LoginScreen() {
   const [idUsuario, setIdUsuario] = useState('');
 
   const handleLogout = () => {
+    setNomeUsuario('');
+    setEmail('');
+    setSenha('');
     setNomeLogged('');
     setEmailLogged('');
     setExisteNome(false);
@@ -44,7 +47,7 @@ export default function LoginScreen() {
   const handleCreateAccount = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
-      alert("o nome de usuario, o e-mail e a senha são obrigatórios!")
+      alert("O nome de usuário, o e-mail e a senha são obrigatórios!")
       return;
     }
     jaExiste()
@@ -66,14 +69,7 @@ export default function LoginScreen() {
     }
   }
   
-  const handleLogin = () => {
-    jaExiste();
-    if (existeNome == true && existeEmail == true && senhaCorreta == false){
-      console.error("senha incorreta!")
-    } else if (existeNome == false || existeEmail == false) {
-      console.error("Conta não existe!")
-    }
-  }
+  
 
   function jaExiste(){
     axios.get(urlUsuario,{headers})
@@ -81,45 +77,40 @@ export default function LoginScreen() {
       setExisteNome(false);
       setExisteEmail(false);
       setSenhaCorreta(false)
-      //setExiste(false)
       for (var i = 0; i < response.data.results.length; i++){
         if (response.data.results[i].email == email && response.data.results[i].nomeUsuario == nomeUsuario){
-          setExisteEmail(true)
           setExisteNome(true)
+          setExisteEmail(true)
           if (response.data.results[i].senha == senha){
-            setSenhaCorreta(true);
             setNomeLogged(nomeUsuario)
             setEmailLogged(email)
+            setSenhaCorreta(true)
             setIdUsuario(response.data.results[i].objectId)
-            //Alert.alert(JSON.stringify(response.data.results[i].objectId))
+            pegarId(response.data.results[i].objectId)
           } else {
-            console.error('senha incorreta!')
+            Alert.alert("Senha incorreta!")
           }
-          //setExiste(true)
-          Alert.alert("ja existe essa exata conta", JSON.stringify(i))
-          //console.error(JSON.stringify(response.data.results[i]))
           return;
         }         
         else {
           if (response.data.results[i].email == email){
+            setExisteNome(false)
             setExisteEmail(true)
-            setExisteNome(false);
             setSenhaCorreta(false)
-            Alert.alert("ja existe o email")
-            //console.error(JSON.stringify(response.data.results[i]))
-            return;
+            Alert.alert("E-mail já existe!")
+            return
           }
           if (response.data.results[i].nomeUsuario == nomeUsuario){
-            Alert.alert("ja existe o nome")
-            setExisteEmail(false);
             setExisteNome(true)
+            setExisteEmail(false)
             setSenhaCorreta(false)
-            return;
+            Alert.alert("Este nome de usuário já existe!")
+            return
           }
         }
       }
-      Alert.alert("nao existe")
-      return;      
+      Alert.alert("Não existe uma conta assim")
+      return 
     })
     .catch(error => {
       // Handle login error
@@ -132,21 +123,7 @@ export default function LoginScreen() {
     });
   }
 
-
-  
-
-  const Logged = () => {
-    return (
-      <ThemedView style={styles.homepage}>
-        <ThemedText>Usuário: {nomeLogged}</ThemedText>
-        <ThemedText>Email: {emailLogged}</ThemedText>
-        <Button onPress={handleLogout} title='Logout'/>
-      </ThemedView>
-    )
-  }
-
   // se usuario estiver logado mostrar o nome e email, se não, mostrar o formulario
-
   return (
     <ScrollView contentContainerStyle={styles.homepage}>
       <ThemedView style={styles.homepage}>
@@ -184,7 +161,7 @@ export default function LoginScreen() {
               style={styles.form} placeholder='Senha'
             />
 
-            <Button onPress={handleLogin} title='Login'></Button>
+            <Button onPress={jaExiste} title='Login'></Button>
             <ThemedText>Ou</ThemedText>
             <Button onPress={handleCreateAccount} title='Criar conta'></Button>
           </ThemedView>
@@ -207,6 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     fontSize: 25,
     padding: 25,
+    
   },
   form: {
     borderColor: 'black',
@@ -216,6 +194,5 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     width: 250,
-    paddingBottom: 10,
   }
 });

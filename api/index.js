@@ -10,6 +10,7 @@ const headersJson = {
   "Content-Type": "application/json",
 };
 
+// Usuario
 export async function addUsuario(usuario) {
   try {
     const response = await axios.post(urlUsuario, usuario, { headers: headersJson });
@@ -19,47 +20,52 @@ export async function addUsuario(usuario) {
     return null;
   }
 }
-/*
-export async function getUsuario() {
+export const idUsuario = ''
+export function pegarId(id){
+  idUsuario = id
+  //return idUsuario
+}
+
+// Personagens
+const urlPersonagem = "https://parseapi.back4app.com/classes/Personagem";
+
+export async function getPersonagens() {
   try {
-    const response = await axios.get(urlUsuario, { headers });
+    const response = await axios.get(urlPersonagem, { headers });
     return response.data.results || [];
   } catch (err) {
-    console.error("Erro ao buscar usuario!", err);
+    console.error("Erro ao buscar personagens:", err);
     return [];
   }
 }
-*/
 
-/*
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Parse from 'parse/react-native.js';
-Parse.setAsyncStorage(AsyncStorage)
-Parse.initialize("CbKjS13gKu6xDLXp0pMNjWrBl3RpvPazUvDKEzj2","lDVd6yFMJgcnosLzKv1del0SlGFtJ9b7mpRlhQNe")
-Parse.serverURL = "https://parseapi.back4app.com/"
-
-export const createUser = async function (nomeUsuario,email,senha) {
-  const newNomeUsuario = nomeUsuario;
-  const newEmail = email;
-  const newSenha = senha;
-  
-  let Usuario = new Parse.Object('Usuario');
-  Usuario.set('nomeUsuario', newNomeUsuario)
-  Usuario.set('email', newEmail)
-  Usuario.set('senha', newSenha)
+export async function addPersonagem(personagem) {
   try {
-    await Usuario.save()
-    alert("Feito!!")
-    setNomeUsuario('')
-    setEmail('')
-    setSenha('')
-      
-    return true;
-  } catch (error) {
-    alert("Error!")
-    Alert.alert("Error!")
-    return false;
+    const response = await axios.post(urlPersonagem, personagem, { headers: headersJson });
+    return { ...personagem, ...response.data };
+  } catch (err) {
+    console.error("Erro ao criar personagem:", err);
+    return null;
   }
 }
-*/
+
+export async function updatePersonagem(personagem) {
+  try {
+    const { objectId, ...dados } = personagem;
+    const response = await axios.put(`${urlPersonagem}/${objectId}`, dados, { headers: headersJson });
+    return response.data;
+  } catch (err) {
+    console.error("Erro ao atualizar personagem:", err);
+    return null;
+  }
+}
+
+export async function deletePersonagem(personagem) {
+  try {
+    const response = await axios.delete(`${urlPersonagem}/${personagem.objectId}`, { headers });
+    return response.data;
+  } catch (err) {
+    console.error("Erro ao deletar personagem:", err);
+    return null;
+  }
+}
