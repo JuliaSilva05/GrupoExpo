@@ -39,7 +39,9 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
   root: { 
     flex: 1,
-    backgroundColor: 'rgba(233, 220, 201, 1)',
+    backgroundColor: 'rgb(228, 202, 164)',
+    borderBottomWidth: 2,
+    borderBottomColor: 'rgb(93, 64, 55)',
   },
 
     header:
@@ -49,14 +51,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent : 'center',
-        backgroundColor: 'rgb(252, 217, 171)',
+        backgroundColor: 'rgb(53, 22, 22)',
         borderBottomWidth: 2,
         borderBottomColor: 'rgb(93, 64, 55)',
     },
 
     headerText:
     { 
-        color: 'rgb(62, 39, 35)',
+        color: 'rgb(228, 202, 164)',
         fontSize: 34,
         marginTop: 30,
         fontFamily: 'Draconis',
