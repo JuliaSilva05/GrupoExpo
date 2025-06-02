@@ -67,10 +67,8 @@ export default function LoginScreen() {
     } else {
       Alert.alert("Já existe alguém com esse nome e/ou email")
     }
-  }
+  } 
   
-  
-
   function jaExiste(){
     axios.get(urlUsuario,{headers})
     .then(response => {
