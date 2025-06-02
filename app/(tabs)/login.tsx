@@ -1,9 +1,13 @@
-import { addUsuario, pegarId } from '@/api/index';
+import { addUsuario } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React, { useState } from 'react';
 import { Alert, Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 
+
+// ainda falta arrumar um jeito de "exportar" a variável de id do usuario para a tab "criar",
+// e fazer aparecer lá somente os personagens em q o UsuarioId do personagem é igual ao objectId 
+// do usuário q fez login. O login tbm tá com um pequeno erro
 
 import axios from "axios";
 const urlUsuario = "https://parseapi.back4app.com/classes/Usuario";
@@ -84,7 +88,6 @@ export default function LoginScreen() {
             setEmailLogged(email)
             setSenhaCorreta(true)
             setIdUsuario(response.data.results[i].objectId)
-            pegarId(response.data.results[i].objectId)
           } else {
             Alert.alert("Senha incorreta!")
           }
@@ -125,13 +128,16 @@ export default function LoginScreen() {
   return (
     <ScrollView contentContainerStyle={styles.homepage}>
       <ThemedView style={styles.homepage}>
-        { nomeLogged && emailLogged && senhaCorreta &&
+        { nomeLogged!='' && emailLogged && senhaCorreta &&
           <ThemedView style={styles.homepage}>
             <ThemedText>Usuário: {nomeLogged}</ThemedText>
             <ThemedText>Email: {emailLogged}</ThemedText>
-            <Button onPress={handleLogout} title='Logout'/>
+            
           </ThemedView>
         }
+        <ThemedView style={styles.homepage}>
+            <Button onPress={handleLogout} title='Logout'/>
+          </ThemedView>
         { !nomeLogged && !emailLogged && !senhaCorreta &&
           <ThemedView style={styles.homepage}>
             <ThemedText type="title">Login</ThemedText>
