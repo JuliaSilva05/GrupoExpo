@@ -1,13 +1,10 @@
-import { ScrollView, StyleSheet, TextInput } from 'react-native';
-
+import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
+import { addPersonagem, deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import React, { useEffect, useState } from 'react';
-//import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
-//import { getRacas, getRacaDetalhes } from '@/scripts/dndApi';
-import { getAntecedentes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
-import { getPersonagens } from '@/api/index';
 import { Picker } from '@react-native-picker/picker';
+import React, { SetStateAction, useEffect, useState } from 'react';
+import { Button, FlatList, ScrollView, StyleSheet, TextInput } from 'react-native';
 
 export default function CreateScreen() {
   const [personagens, setPersonagens] = useState([]);
@@ -49,42 +46,26 @@ export default function CreateScreen() {
     const antecedentesData = await getAntecedentes();
     setAntecedentes(antecedentesData);
   }
-  
-  const handleChange = () => {
-    const { name, value } = e.target;
-    const a = {
-      
-    }
-    setForm({
-      ...form,
-      [name]: value
-    });
 
-    // Carregar detalhes quando uma raça, classe ou antecedente for selecionado
-    if (name === 'raca' && value) {
-      carregarRacaDetalhes(value);
-    } else if (name === 'classe' && value) {
-      carregarClasseDetalhes(value);
-    } else if (name === 'antecedente' && value) {
-      carregarAntecedenteDetalhes(value);
-    }
-  };
 
   async function carregarRacaDetalhes(index: string) {
+    setForm({nome:form.nome, raca:index, classe:form.classe, antecedente:form.antecedente, background:form.background})
     const detalhes = await getRacaDetalhes(index);
     setRacaDetalhes(detalhes);
   }
 
   async function carregarClasseDetalhes(index: string) {
+    setForm({nome:form.nome, raca:form.raca, classe:index, antecedente:form.antecedente, background:form.background})
     const detalhes = await getClasseDetalhes(index);
     setClasseDetalhes(detalhes);
   }
 
   async function carregarAntecedenteDetalhes(index: string) {
+    setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:index, background:form.background})
     const detalhes = await getAntecedenteDetalhes(index);
     setAntecedenteDetalhes(detalhes);
   }
-/*
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -123,7 +104,7 @@ export default function CreateScreen() {
     }
   };
 
-  const handleEdit = (personagem: { objectId: SetStateAction<null>; nome: any; raca: string; classe: string; antecedente: string; background: any; }) => {
+  const handleEdit = (personagem: {objectId:SetStateAction<null>, nome:string, raca:string, classe: string, antecedente:string, background:string}) => {
     setEditando(personagem.objectId);
     setForm({
       nome: personagem.nome,
@@ -152,12 +133,6 @@ export default function CreateScreen() {
     }
   };
 
-  {racas.map(raca => (
-              <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
-            ))}
-  */
-
-
 
   
   return (
@@ -171,16 +146,97 @@ export default function CreateScreen() {
             onChangeText={(text) => setForm({nome: text, raca:form.raca, classe:form.raca, antecedente: form.antecedente, background: form.background})}/>
           
           <ThemedText>Raça:</ThemedText>
-          <Picker selectedValue={form.raca} style={styles.form}>
+          <Picker onValueChange={carregarRacaDetalhes} selectedValue={form.raca} style={styles.form}>
             <Picker.Item value={''} label='Selecione uma raça'/>
             {racas.map(raca => (
               <Picker.Item value={raca.index} label={raca.name}/>
             ))}
           </Picker>
-          {form.raca}
+          {racaDetalhes && 
+            <ThemedView>
+              <ThemedText type='title'>{racaDetalhes.name}</ThemedText>
+              <ThemedText>
+                Velocidade: {racaDetalhes.speed}{'\n'}
+                Idade: {racaDetalhes.age}{'\n'}
+                Alinhamento: {racaDetalhes.alignment}{'\n'}
+                Tamanho: {racaDetalhes.size_description}{'\n'}
+              </ThemedText>
+            </ThemedView>
+          }
 
-          <ThemedText> {form.nome} Background</ThemedText>
-          <TextInput multiline numberOfLines={5} style={styles.form}/>
+          <ThemedText>Classe:</ThemedText>
+          <Picker onValueChange={carregarClasseDetalhes} selectedValue={form.classe} style={styles.form}>
+            <Picker.Item value={''} label='Selecione uma classe'/>
+            {classes.map(classe => (
+              <Picker.Item value={classe.index} label={classe.name}/>
+            ))}
+          </Picker>
+          {classeDetalhes && (
+            <ThemedView>
+              <ThemedText type='title'>{classeDetalhes.name}</ThemedText>
+              <ThemedText>
+                Dados de vida: {classeDetalhes.hit_die}{'\n'}
+                Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}{'\n'}
+              </ThemedText>
+            </ThemedView>
+          )}
+
+          <ThemedText>Antecedente:</ThemedText>
+          <Picker onValueChange={carregarAntecedenteDetalhes} selectedValue={form.antecedente} style={styles.form}>
+            <Picker.Item value={''} label='Selecione um antecedente'/>
+            {antecedentes.map(antecedente => (
+              <Picker.Item value={antecedente.index} label={antecedente.name}/>
+            ))}
+          </Picker>
+          {antecedenteDetalhes && (
+            <ThemedView>
+              <ThemedText type='title'>{antecedenteDetalhes.name}</ThemedText>
+              <ThemedText>
+                Descrição: {antecedenteDetalhes.desc}{'\n'}
+              </ThemedText>
+            </ThemedView>
+          )}
+
+          <ThemedText>Background</ThemedText>
+          <TextInput onChangeText={(text) => setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:form.antecedente,background:text})} multiline numberOfLines={5} style={styles.form}/>
+
+          <ThemedView>
+            <Button onPress={handleSubmit} title={editando ? 'Atualizar':'Cadastrar'}/>
+            {editando && (
+            <Button title='Cancelar' onPress={() => {
+                setEditando(null);
+                setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+                setRacaDetalhes(null);
+                setClasseDetalhes(null);
+                setAntecedenteDetalhes(null);
+              }}
+            />
+          )}
+          </ThemedView>
+
+          <ThemedText type='title'>Personagens Cadastrados:</ThemedText>
+          {personagens.length === 0 ? (
+            <ThemedText>Nenhum personagem cadastrado ainda.</ThemedText>
+          ) : (
+              
+            <FlatList data={personagens} renderItem={({item}) => 
+              <ThemedView>
+                <ThemedText>
+                  {item.nome} {'\n'}
+                  Raça: {item.racaDetalhes ? item.racaDetalhes.name : item.raca} {'\n'}
+                  Classe: {item.classeDetalhes ? item.classeDetalhes.name : item.classe} {'\n'}
+                  Antecedente: {item.antecedenteDetalhes ? item.antecedenteDetalhes.name : item.antecedente} {'\n'}
+                  Background: {item.background}
+                </ThemedText>
+                <Button onPress={() => handleEdit(item)} title='Editar'/>
+                <Button onPress={() => handleDelete(item)} title='Deletar'/>
+                
+              </ThemedView>}
+            />
+            
+
+          )}
+          
           
         </ThemedView>
       </ThemedView>
