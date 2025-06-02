@@ -1,13 +1,13 @@
-import { Picker } from '@react-native-picker/picker';
 import { ScrollView, StyleSheet, TextInput } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { SetStateAction, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 //import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
 //import { getRacas, getRacaDetalhes } from '@/scripts/dndApi';
-import { addPersonagem, deletePersonagem, getPersonagens, updatePersonagem } from '@/api';
-import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
+import { getAntecedentes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
+import { getPersonagens } from '@/api/index';
+import { Picker } from '@react-native-picker/picker';
 
 export default function CreateScreen() {
   const [personagens, setPersonagens] = useState([]);
@@ -49,9 +49,12 @@ export default function CreateScreen() {
     const antecedentesData = await getAntecedentes();
     setAntecedentes(antecedentesData);
   }
-
-  const handleChange = (e) => {
+  
+  const handleChange = () => {
     const { name, value } = e.target;
+    const a = {
+      
+    }
     setForm({
       ...form,
       [name]: value
@@ -66,7 +69,7 @@ export default function CreateScreen() {
       carregarAntecedenteDetalhes(value);
     }
   };
-  
+
   async function carregarRacaDetalhes(index: string) {
     const detalhes = await getRacaDetalhes(index);
     setRacaDetalhes(detalhes);
@@ -81,7 +84,7 @@ export default function CreateScreen() {
     const detalhes = await getAntecedenteDetalhes(index);
     setAntecedenteDetalhes(detalhes);
   }
-
+/*
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -149,6 +152,11 @@ export default function CreateScreen() {
     }
   };
 
+  {racas.map(raca => (
+              <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
+            ))}
+  */
+
 
 
   
@@ -156,29 +164,23 @@ export default function CreateScreen() {
     <ScrollView>
       <ThemedView style={styles.homepage}>
         <ThemedText type="title">Cadastro de Personagens de RPG</ThemedText>
-        <ThemedView>
+        <ThemedView style={styles.homepage}>
           <ThemedText>Nome:</ThemedText>
           <TextInput style={styles.form}
             value={form.nome}
-            onChange={handleChange}/>
-
-          <ThemedText>Raça</ThemedText>
-          <Picker>
-            <Picker.Item/>
+            onChangeText={(text) => setForm({nome: text, raca:form.raca, classe:form.raca, antecedente: form.antecedente, background: form.background})}/>
+          
+          <ThemedText>Raça:</ThemedText>
+          <Picker selectedValue={form.raca} style={styles.form}>
+            <Picker.Item value={''} label='Selecione uma raça'/>
+            {racas.map(raca => (
+              <Picker.Item value={raca.index} label={raca.name}/>
+            ))}
           </Picker>
+          {form.raca}
 
-          <ThemedText>Classe</ThemedText>
-          <Picker>
-            <Picker.Item/>
-          </Picker>
-
-          <ThemedText>Antecedente</ThemedText>
-          <Picker>
-            <Picker.Item/>
-          </Picker>
-
-          <ThemedText>Background</ThemedText>
-          <TextInput multiline numberOfLines={5}/>
+          <ThemedText> {form.nome} Background</ThemedText>
+          <TextInput multiline numberOfLines={5} style={styles.form}/>
           
         </ThemedView>
       </ThemedView>
