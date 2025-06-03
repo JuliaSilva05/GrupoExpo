@@ -10,6 +10,8 @@ import { Alert, Button, ScrollView, StyleSheet, TextInput } from 'react-native';
 // do usuário q fez login. O login tbm tá com um pequeno erro
 
 import axios from "axios";
+import { useUserStore } from '@/store/userStore';
+
 const urlUsuario = "https://parseapi.back4app.com/classes/Usuario";
 
 const headers = {
@@ -27,151 +29,120 @@ export default function LoginScreen() {
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [nomeLogged, setNomeLogged] = useState('');
-  const [emailLogged, setEmailLogged] = useState('');
+  const user = useUserStore((s) => s.user);
+  const setUser = useUserStore((s) => s.setUser);
+  const logout = useUserStore((s) => s.logout);
 
-  const [existeNome, setExisteNome] = useState(false);
-  const [existeEmail, setExisteEmail] = useState(false);
-  const [senhaCorreta, setSenhaCorreta] = useState(false);
-  
-  const [idUsuario, setIdUsuario] = useState('');
-
-  const handleLogout = () => {
-    setNomeUsuario('');
-    setEmail('');
-    setSenha('');
-    setNomeLogged('');
-    setEmailLogged('');
-    setExisteNome(false);
-    setExisteEmail(false);
-    setSenhaCorreta(false);
-    setIdUsuario('');
-  }
-  const handleCreateAccount = async (e: { preventDefault: () => void; }) => {
-    e.preventDefault();
-    if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
-      alert("O nome de usuário, o e-mail e a senha são obrigatórios!")
-      return;
+  // LOGIN
+  async function handleLogin() {
+    setLoading(true);
+    try {
+      const res = await axios.get(urlUsuario, { headers });
+      const found = res.data.results.find(
+        (u) => u.email === email && u.nomeUsuario === nomeUsuario
+      );
+      if (!found) {
+        Alert.alert("Usuário não encontrado ou nome/email incorretos");
+        setLoading(false);
+        return;
+      }
+      if (found.senha !== senha) {
+        Alert.alert("Senha incorreta!");
+        setLoading(false);
+        return;
+      }
+      setUser({
+        objectId: found.objectId,
+        nomeUsuario: found.nomeUsuario,
+        email: found.email,
+      });
+      setLoading(false);
+    } catch (e) {
+      Alert.alert("Erro ao logar");
+      setLoading(false);
     }
-    jaExiste()
-    if (existeNome == false && existeEmail == false){
-      const usuario = {
-        nomeUsuario: nomeUsuario,
-        email: email,
-        senha: senha
-      }
-      const novoUsuario = await addUsuario(usuario)
-      if (novoUsuario){
-        alert("Você criou uma conta! Agora é só colocar os dados de novo e clicar em \"Login\"!")
-        setNomeUsuario('')
-        setEmail('')
-        setSenha('')
-      }
-    } else {
-      Alert.alert("Já existe alguém com esse nome e/ou email")
-    }
-  } 
-  
-  function jaExiste(){
-    axios.get(urlUsuario,{headers})
-    .then(response => {
-      setExisteNome(false);
-      setExisteEmail(false);
-      setSenhaCorreta(false)
-      for (var i = 0; i < response.data.results.length; i++){
-        if (response.data.results[i].email == email && response.data.results[i].nomeUsuario == nomeUsuario){
-          setExisteNome(true)
-          setExisteEmail(true)
-          if (response.data.results[i].senha == senha){
-            setNomeLogged(nomeUsuario)
-            setEmailLogged(email)
-            setSenhaCorreta(true)
-            setIdUsuario(response.data.results[i].objectId)
-          } else {
-            Alert.alert("Senha incorreta!")
-          }
-          return;
-        }         
-        else {
-          if (response.data.results[i].email == email){
-            setExisteNome(false)
-            setExisteEmail(true)
-            setSenhaCorreta(false)
-            Alert.alert("E-mail já existe!")
-            return
-          }
-          if (response.data.results[i].nomeUsuario == nomeUsuario){
-            setExisteNome(true)
-            setExisteEmail(false)
-            setSenhaCorreta(false)
-            Alert.alert("Este nome de usuário já existe!")
-            return
-          }
-        }
-      }
-      Alert.alert("Não existe uma conta assim")
-      return 
-    })
-    .catch(error => {
-      // Handle login error
-      console.error('Login failed', error.response);
-      Alert.alert('Login Failed', 'Please check your credentials and try again.');
-      setExisteEmail(false)
-      setExisteNome(false)
-      setSenhaCorreta(false)
-      return;
-    });
   }
 
-  // se usuario estiver logado mostrar o nome e email, se não, mostrar o formulario
+  // CADASTRO
+  async function handleCreateAccount() {
+    setLoading(true);
+    if (!nomeUsuario.trim() || !email.trim() || !senha.trim()) {
+      Alert.alert("O nome de usuário, o e-mail e a senha são obrigatórios!");
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await axios.get(urlUsuario, { headers });
+      const existsEmail = res.data.results.some((u) => u.email === email);
+      const existsNome = res.data.results.some((u) => u.nomeUsuario === nomeUsuario);
+      if (existsEmail || existsNome) {
+        Alert.alert("Já existe alguém com esse nome e/ou email");
+        setLoading(false);
+        return;
+      }
+      const usuario = { nomeUsuario, email, senha };
+      const novoUsuario = await addUsuario(usuario);
+      if (novoUsuario) {
+        Alert.alert("Conta criada! Faça login.");
+        setNomeUsuario('');
+        setEmail('');
+        setSenha('');
+      }
+      setLoading(false);
+    } catch (e) {
+      Alert.alert("Erro ao criar conta");
+      setLoading(false);
+    }
+  }
+
+  function handleLogout() {
+    logout();
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.homepage}>
       <ThemedView style={styles.homepage}>
-        { nomeLogged!='' && emailLogged && senhaCorreta &&
+        {user ? (
           <ThemedView style={styles.homepage}>
-            <ThemedText>Usuário: {nomeLogged}</ThemedText>
-            <ThemedText>Email: {emailLogged}</ThemedText>
-            
+            <ThemedText>Usuário: {user.nomeUsuario}</ThemedText>
+            <ThemedText>Email: {user.email}</ThemedText>
+            <Button onPress={handleLogout} title='Logout' />
           </ThemedView>
-        }
-        <ThemedView style={styles.homepage}>
-            <Button onPress={handleLogout} title='Logout'/>
-          </ThemedView>
-        { !nomeLogged && !emailLogged && !senhaCorreta &&
+        ) : (
           <ThemedView style={styles.homepage}>
             <ThemedText type="title">Login</ThemedText>
             <ThemedText>Nome de Usuário</ThemedText>
-          
+
             <TextInput
               value={nomeUsuario}
-              onChangeText={(value) => setNomeUsuario(value)}
+              onChangeText={setNomeUsuario}
               style={styles.form} placeholder='Usuário'
             />
-            
+
             <ThemedText>E-mail</ThemedText>
-            <TextInput       
+            <TextInput
               value={email}
-              onChangeText={(value) => setEmail(value)}
+              onChangeText={setEmail}
               keyboardType='email-address'
               style={styles.form} placeholder='E-mail'
             />
-            
+
             <ThemedText>Senha</ThemedText>
-            <TextInput     
-              secureTextEntry    
+            <TextInput
+              secureTextEntry
               value={senha}
-              onChangeText={(value) => setSenha(value)}
+              onChangeText={setSenha}
               style={styles.form} placeholder='Senha'
             />
-
-            <Button onPress={jaExiste} title='Login'></Button>
+            <Button onPress={handleLogin} title={loading ? 'Entrando...' : 'Login'} />
             <ThemedText>Ou</ThemedText>
-            <Button onPress={handleCreateAccount} title='Criar conta'></Button>
+            <Button onPress={handleCreateAccount} title={loading ? 'Criando...' : 'Criar conta'} />
           </ThemedView>
-        }
-        </ThemedView>
-          
+        )}
+      </ThemedView>
+
             
     </ScrollView>
   );
@@ -188,7 +159,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     fontSize: 25,
     padding: 25,
-    
+
   },
   form: {
     borderColor: 'black',

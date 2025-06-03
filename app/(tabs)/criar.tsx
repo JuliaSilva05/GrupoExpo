@@ -5,6 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Platform, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { useUserStore } from '@/store/userStore';
 
 export default function CreateScreen() {
   const [personagens, setPersonagens] = useState([]);
@@ -22,15 +23,21 @@ export default function CreateScreen() {
     background: '',
   });
   const [editando, setEditando] = useState(null);
+  const user = useUserStore((s) => s.user);
 
   useEffect(() => {
-    carregarPersonagens();
+    if (user) {
+      carregarPersonagens();
+    } else {
+      setPersonagens([]);
+    }
     carregarDadosDnD();
-  }, []);
+  }, [user]);
 
   async function carregarPersonagens() {
     const dados = await getPersonagens();
-    setPersonagens(dados);
+    // Filtra personagens do usuário logado
+    setPersonagens(dados.filter(p => p.UsuarioId === user?.objectId));
   }
 
   async function carregarDadosDnD() {
@@ -68,15 +75,18 @@ export default function CreateScreen() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    if (!user) {
+      alert('Você precisa estar logado para criar um personagem!');
+      return;
+    }
     if (!form.nome.trim()) {
       alert('O nome do personagem é obrigatório!');
       return;
     }
-
-    // Adicionar detalhes da raça, classe e antecedente ao personagem
+    // Adiciona o UsuarioId ao personagem
     const personagemCompleto = {
       ...form,
+      UsuarioId: user.objectId,
       racaDetalhes: racaDetalhes,
       classeDetalhes: classeDetalhes,
       antecedenteDetalhes: antecedenteDetalhes
@@ -173,6 +183,9 @@ export default function CreateScreen() {
     <ScrollView>
       <ThemedView style={styles.homepage}>
         <ThemedText type="title">Cadastro de Personagens de RPG</ThemedText>
+        {!user ? (
+          <ThemedText>Faça login para criar e visualizar seus personagens.</ThemedText>
+        ) : (
         <ThemedView style={styles.homepage}>
           <ThemedText>Nome:</ThemedText>
           <TextInput style={styles.form}
@@ -274,6 +287,7 @@ export default function CreateScreen() {
           )}          
           
         </ThemedView>
+        )}
       </ThemedView>
     </ScrollView>
   );
