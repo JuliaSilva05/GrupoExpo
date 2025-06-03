@@ -3,8 +3,8 @@ import { addPersonagem, deletePersonagem, getPersonagens, updatePersonagem } fro
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
-import React, { SetStateAction, useEffect, useState } from 'react';
-import { Button, FlatList, ScrollView, StyleSheet, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Platform, ScrollView, StyleSheet, TextInput } from 'react-native';
 
 export default function CreateScreen() {
   const [personagens, setPersonagens] = useState([]);
@@ -104,7 +104,7 @@ export default function CreateScreen() {
     }
   };
 
-  const handleEdit = (personagem: {objectId:SetStateAction<null>, nome:string, raca:string, classe: string, antecedente:string, background:string}) => {
+  const handleEdit = (personagem: object) => {
     setEditando(personagem.objectId);
     setForm({
       nome: personagem.nome,
@@ -127,13 +127,47 @@ export default function CreateScreen() {
   };
 
   const handleDelete = async (objectId: string) => {
+    if (Platform.OS === 'android' || Platform.OS === 'ios'){
+      Alert.alert('Tem certeza que deseja excluir este personagem?', '',
+      [
+        { text: 'Cancelar'},
+        { text: 'Sim',
+          onPress: async () => {
+            await deletePersonagem({ objectId });
+            await carregarPersonagens();
+          }          
+        },
+      ])
+    } else if (Platform.OS === 'web'){
+      if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
+        await deletePersonagem({ objectId });
+        await carregarPersonagens();
+      }
+    }
+
+    /*
     if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
       await deletePersonagem({ objectId });
       await carregarPersonagens();
-    }
+    }*/
   };
 
-
+/*
+<FlatList data={personagens} renderItem={({item}) => 
+              <ThemedView>
+                <ThemedText>
+                  {item.nome} {'\n'}
+                  Raça: {item.racaDetalhes ? item.racaDetalhes.name : item.raca} {'\n'}
+                  Classe: {item.classeDetalhes ? item.classeDetalhes.name : item.classe} {'\n'}
+                  Antecedente: {item.antecedenteDetalhes ? item.antecedenteDetalhes.name : item.antecedente} {'\n'}
+                  Background: {item.background}
+                </ThemedText>
+                <Button onPress={() => handleEdit(item)} title='Editar'/>
+                <Button onPress={() => handleDelete(item)} title='Deletar'/>
+                
+              </ThemedView>}
+            />
+            */
   
   return (
     <ScrollView>
@@ -198,7 +232,7 @@ export default function CreateScreen() {
           )}
 
           <ThemedText>Background</ThemedText>
-          <TextInput onChangeText={(text) => setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:form.antecedente,background:text})} multiline numberOfLines={5} style={styles.form}/>
+          <TextInput value={form.background} onChangeText={(text) => setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:form.antecedente,background:text})} multiline numberOfLines={5} style={styles.form}/>
 
           <ThemedView>
             <Button onPress={handleSubmit} title={editando ? 'Atualizar':'Cadastrar'}/>
@@ -219,24 +253,23 @@ export default function CreateScreen() {
             <ThemedText>Nenhum personagem cadastrado ainda.</ThemedText>
           ) : (
               
-            <FlatList data={personagens} renderItem={({item}) => 
-              <ThemedView>
-                <ThemedText>
-                  {item.nome} {'\n'}
-                  Raça: {item.racaDetalhes ? item.racaDetalhes.name : item.raca} {'\n'}
-                  Classe: {item.classeDetalhes ? item.classeDetalhes.name : item.classe} {'\n'}
-                  Antecedente: {item.antecedenteDetalhes ? item.antecedenteDetalhes.name : item.antecedente} {'\n'}
-                  Background: {item.background}
-                </ThemedText>
-                <Button onPress={() => handleEdit(item)} title='Editar'/>
-                <Button onPress={() => handleDelete(item)} title='Deletar'/>
-                
-              </ThemedView>}
-            />
+            <ThemedView>
+              {personagens.map((p) => (
+                <ThemedView key={p.objectId}>
+                  <ThemedText>
+                    {p.nome} {'\n'}
+                    Raça: {p.racaDetalhes ? p.racaDetalhes.name : p.raca} {'\n'}
+                    Classe: {p.classeDetalhes ? p.classeDetalhes.name : p.classe} {'\n'}
+                    Antecedente: {p.antecedenteDetalhes ? p.antecedenteDetalhes.name : p.antecedente} {'\n'}
+                    Background: {p.background}          
+                  </ThemedText>
+                  <Button onPress={() => handleEdit(p)} title='Editar'/>
+                  <Button onPress={() => handleDelete(p.objectId)} title='Deletar'/>
+                </ThemedView>
+              ))}
+            </ThemedView>                     
             
-
-          )}
-          
+          )}          
           
         </ThemedView>
       </ThemedView>
