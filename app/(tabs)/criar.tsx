@@ -225,9 +225,11 @@ export default function CreateScreen() {
           {antecedenteDetalhes && (
             <ThemedView>
               <ThemedText type='title'>{antecedenteDetalhes.name}</ThemedText>
-              <ThemedText>
-                Descrição: {antecedenteDetalhes.desc}{'\n'}
-              </ThemedText>
+                {antecedenteDetalhes.name&&
+                  <ThemedText>
+                    Descrição: {antecedenteDetalhes.feature.desc}{'\n'}
+                  </ThemedText>
+                }
             </ThemedView>
           )}
 
