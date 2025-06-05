@@ -63,7 +63,7 @@ export default function PersonagensScreen() {
     setAntecedenteDetalhes(detalhes);
   }
 
-  const handleEdit = (personagem: object) => {
+  const handleEdit = async (personagem: object) => {
     setEditando(personagem.objectId);
     setForm({
       nome: personagem.nome,
@@ -75,13 +75,16 @@ export default function PersonagensScreen() {
     
     // Carregar detalhes da raça, classe e antecedente
     if (personagem.raca) {
-      carregarRacaDetalhes(personagem.raca);
+      const racaDetalhes = await getRacaDetalhes(personagem.raca);
+      setRacaDetalhes(racaDetalhes);
     }
     if (personagem.classe) {
-      carregarClasseDetalhes(personagem.classe);
+      const classeDetalhes = await getClasseDetalhes(personagem.classe);
+      setClasseDetalhes(classeDetalhes);
     }
     if (personagem.antecedente) {
-      carregarAntecedenteDetalhes(personagem.antecedente);
+      const antecedenteDetalhes = await getAntecedenteDetalhes(personagem.antecedente);
+      setAntecedenteDetalhes(antecedenteDetalhes);
     }
   };
 
@@ -133,7 +136,25 @@ export default function PersonagensScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>PERSONAGENS</Text>
+        {editando ? (
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                setEditando(null);
+                setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+                setRacaDetalhes(null);
+                setClasseDetalhes(null);
+                setAntecedenteDetalhes(null);
+              }}
+            >
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerText}>EDITAR PERSONAGEM</Text>
+          </View>
+        ) : (
+          <Text style={styles.headerText}>PERSONAGENS</Text>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -261,9 +282,9 @@ export default function PersonagensScreen() {
                 <View key={p.objectId} style={styles.personagemCard}>
                   <Text style={styles.normalText}>
                     {p.nome}{'\n'}
-                    Raça: {p.racaDetalhes ? p.racaDetalhes.name : p.raca}{'\n'}
-                    Classe: {p.classeDetalhes ? p.classeDetalhes.name : p.classe}{'\n'}
-                    Antecedente: {p.antecedenteDetalhes ? p.antecedenteDetalhes.name : p.antecedente}{'\n'}
+                    Raça: {p.racaDetalhes?.name || p.raca}{'\n'}
+                    Classe: {p.classeDetalhes?.name || p.classe}{'\n'}
+                    Antecedente: {p.antecedenteDetalhes?.name || p.antecedente}{'\n'}
                     Background: {p.background}
                   </Text>
                   <View style={styles.buttonContainer}>
@@ -299,19 +320,51 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    height: '10.5%',
+    height: '12%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgb(53, 22, 22)',
     borderBottomWidth: 2,
     borderBottomColor: 'rgb(93, 64, 55)',
+    paddingBottom: 10,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 30,
+    paddingHorizontal: 50,
+    height: '100%',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    padding: 10,
+    zIndex: 1,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgb(228, 202, 164)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(53, 22, 22, 0.8)',
+  },
+  backButtonText: {
+    color: 'rgb(228, 202, 164)',
+    fontSize: 34,
+    fontFamily: 'Draconis',
+    marginTop: -5,
   },
   headerText: {
     color: 'rgb(228, 202, 164)',
     fontSize: 34,
-    marginTop: 30,
     fontFamily: 'Draconis',
+    textAlign: 'center',
+    flex: 1,
+    marginTop: 0,
   },
   scrollContainer: {
     flexGrow: 1,
