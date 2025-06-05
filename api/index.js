@@ -41,7 +41,9 @@ export async function getPersonagens() {
 
 export async function addPersonagem(personagem) {
   try {
+    console.log('Tentando adicionar personagem:', personagem);
     const response = await axios.post(urlPersonagem, personagem, { headers: headersJson });
+    console.log('Resposta da API:', response.data);
     return { ...personagem, ...response.data };
   } catch (err) {
     console.error("Erro ao criar personagem:", err);

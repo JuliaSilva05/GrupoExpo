@@ -74,33 +74,39 @@ export default function CreateScreen() {
       return;
     }
 
-    // Adicionar detalhes da raça, classe e antecedente ao personagem
-    const personagemCompleto = {
-      ...form,
-      racaDetalhes: racaDetalhes,
-      classeDetalhes: classeDetalhes,
-      antecedenteDetalhes: antecedenteDetalhes
-    };
+    try {
+      // Adicionar detalhes da raça, classe e antecedente ao personagem
+      const personagemCompleto = {
+        ...form,
+        racaDetalhes: racaDetalhes,
+        classeDetalhes: classeDetalhes,
+        antecedenteDetalhes: antecedenteDetalhes
+      };
 
-    if (editando) {
-      const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
-      if (atualizado) {
-        setEditando(null);
-        setForm({ nome: '', raca: '', classe: '', antecedente: '', background: ''});
-        setRacaDetalhes(null);
-        setClasseDetalhes(null);
-        setAntecedenteDetalhes(null);
-        await carregarPersonagens();
+      if (editando) {
+        const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
+        if (atualizado) {
+          setEditando(null);
+          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: ''});
+          setRacaDetalhes(null);
+          setClasseDetalhes(null);
+          setAntecedenteDetalhes(null);
+          await carregarPersonagens();
+        }
+      } else {
+        const novoPersonagem = await addPersonagem(personagemCompleto);
+        if (novoPersonagem) {
+          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+          setRacaDetalhes(null);
+          setClasseDetalhes(null);
+          setAntecedenteDetalhes(null);
+          await carregarPersonagens();
+          alert('Personagem criado com sucesso!');
+        }
       }
-    } else {
-      const novoPersonagem = await addPersonagem(personagemCompleto);
-      if (novoPersonagem) {
-        setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
-        setRacaDetalhes(null);
-        setClasseDetalhes(null);
-        setAntecedenteDetalhes(null);
-        await carregarPersonagens();
-      }
+    } catch (error) {
+      console.error('Erro ao salvar personagem:', error);
+      alert('Erro ao salvar personagem. Tente novamente.');
     }
   };
 

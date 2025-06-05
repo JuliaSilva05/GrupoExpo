@@ -1,10 +1,18 @@
 import { deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
+import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 export default function PersonagensScreen() {
   const [personagens, setPersonagens] = useState([]);
   const [editando, setEditando] = useState(null);
+  const [racas, setRacas] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [antecedentes, setAntecedentes] = useState([]);
+  const [racaDetalhes, setRacaDetalhes] = useState(null);
+  const [classeDetalhes, setClasseDetalhes] = useState(null);
+  const [antecedenteDetalhes, setAntecedenteDetalhes] = useState(null);
   const [form, setForm] = useState({
     nome: '',
     raca: '',
@@ -15,11 +23,44 @@ export default function PersonagensScreen() {
 
   useEffect(() => {
     carregarPersonagens();
+    carregarDadosDnD();
   }, []);
 
   async function carregarPersonagens() {
     const dados = await getPersonagens();
     setPersonagens(dados);
+  }
+
+  async function carregarDadosDnD() {
+    // Carregar raças
+    const racasData = await getRacas();
+    setRacas(racasData);
+
+    // Carregar classes
+    const classesData = await getClasses();
+    setClasses(classesData);
+
+    // Carregar antecedentes
+    const antecedentesData = await getAntecedentes();
+    setAntecedentes(antecedentesData);
+  }
+
+  async function carregarRacaDetalhes(index: string) {
+    setForm({...form, raca: index});
+    const detalhes = await getRacaDetalhes(index);
+    setRacaDetalhes(detalhes);
+  }
+
+  async function carregarClasseDetalhes(index: string) {
+    setForm({...form, classe: index});
+    const detalhes = await getClasseDetalhes(index);
+    setClasseDetalhes(detalhes);
+  }
+
+  async function carregarAntecedenteDetalhes(index: string) {
+    setForm({...form, antecedente: index});
+    const detalhes = await getAntecedenteDetalhes(index);
+    setAntecedenteDetalhes(detalhes);
   }
 
   const handleEdit = (personagem: object) => {
@@ -31,6 +72,17 @@ export default function PersonagensScreen() {
       antecedente: personagem.antecedente,
       background: personagem.background,
     });
+    
+    // Carregar detalhes da raça, classe e antecedente
+    if (personagem.raca) {
+      carregarRacaDetalhes(personagem.raca);
+    }
+    if (personagem.classe) {
+      carregarClasseDetalhes(personagem.classe);
+    }
+    if (personagem.antecedente) {
+      carregarAntecedenteDetalhes(personagem.antecedente);
+    }
   };
 
   const handleUpdate = async () => {
@@ -39,10 +91,20 @@ export default function PersonagensScreen() {
       return;
     }
 
-    const atualizado = await updatePersonagem({ ...form, objectId: editando });
+    const personagemCompleto = {
+      ...form,
+      racaDetalhes: racaDetalhes,
+      classeDetalhes: classeDetalhes,
+      antecedenteDetalhes: antecedenteDetalhes
+    };
+
+    const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
     if (atualizado) {
       setEditando(null);
       setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+      setRacaDetalhes(null);
+      setClasseDetalhes(null);
+      setAntecedenteDetalhes(null);
       await carregarPersonagens();
     }
   };
@@ -74,7 +136,7 @@ export default function PersonagensScreen() {
         <Text style={styles.headerText}>PERSONAGENS</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           {editando ? (
             <View style={styles.editContainer}>
@@ -88,25 +150,79 @@ export default function PersonagensScreen() {
               />
 
               <Text style={styles.normalText}>Raça:</Text>
-              <TextInput
+              <Picker 
+                onValueChange={carregarRacaDetalhes} 
+                selectedValue={form.raca} 
                 style={styles.form}
-                value={form.raca}
-                onChangeText={(text) => setForm({ ...form, raca: text })}
-              />
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
+              >
+                <Picker.Item value={''} label='Selecione uma raça'/>
+                {racas.map(raca => (
+                  <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
+                ))}
+              </Picker>
+              
+              {racaDetalhes && 
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{racaDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Velocidade: {racaDetalhes.speed}{'\n'}
+                    Idade: {racaDetalhes.age}{'\n'}
+                    Alinhamento: {racaDetalhes.alignment}{'\n'}
+                    Tamanho: {racaDetalhes.size_description}
+                  </Text>
+                </View>
+              }
 
               <Text style={styles.normalText}>Classe:</Text>
-              <TextInput
+              <Picker 
+                onValueChange={carregarClasseDetalhes} 
+                selectedValue={form.classe} 
                 style={styles.form}
-                value={form.classe}
-                onChangeText={(text) => setForm({ ...form, classe: text })}
-              />
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
+              >
+                <Picker.Item value={''} label='Selecione uma classe'/>
+                {classes.map(classe => (
+                  <Picker.Item key={classe.index} value={classe.index} label={classe.name}/>
+                ))}
+              </Picker>
+              
+              {classeDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{classeDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Dados de vida: {classeDetalhes.hit_die}{'\n'}
+                    Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
+                  </Text>
+                </View>
+              )}
 
               <Text style={styles.normalText}>Antecedente:</Text>
-              <TextInput
+              <Picker 
+                onValueChange={carregarAntecedenteDetalhes} 
+                selectedValue={form.antecedente} 
                 style={styles.form}
-                value={form.antecedente}
-                onChangeText={(text) => setForm({ ...form, antecedente: text })}
-              />
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
+              >
+                <Picker.Item value={''} label='Selecione um antecedente'/>
+                {antecedentes.map(antecedente => (
+                  <Picker.Item key={antecedente.index} value={antecedente.index} label={antecedente.name}/>
+                ))}
+              </Picker>
+              
+              {antecedenteDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{antecedenteDetalhes.name}</Text>
+                  {antecedenteDetalhes.name &&
+                    <Text style={styles.normalText}>
+                      Descrição: {antecedenteDetalhes.feature.desc}
+                    </Text>
+                  }
+                </View>
+              )}
 
               <Text style={styles.normalText}>Background:</Text>
               <TextInput
@@ -129,6 +245,9 @@ export default function PersonagensScreen() {
                   onPress={() => {
                     setEditando(null);
                     setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+                    setRacaDetalhes(null);
+                    setClasseDetalhes(null);
+                    setAntecedenteDetalhes(null);
                   }}
                 >
                   <Text style={styles.buttonText}>Cancelar</Text>
@@ -194,6 +313,10 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontFamily: 'Draconis',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 100,
+  },
   container: {
     flex: 1,
     paddingTop: 45,
@@ -237,6 +360,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontFamily: 'Vecna',
     fontSize: 18,
+  },
+  detailsContainer: {
+    width: '80%',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 10,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: 'rgb(93, 64, 55)',
   },
   personagemCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
