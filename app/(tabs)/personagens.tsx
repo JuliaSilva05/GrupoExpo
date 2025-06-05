@@ -2,7 +2,7 @@ import { deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index'
 import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
 import { useUserStore } from '@/store/userStore';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 interface Personagem {
@@ -56,6 +56,7 @@ export default function PersonagensScreen() {
   const { isLoggedIn, id: userId } = useUserStore();
   const [personagens, setPersonagens] = useState<Personagem[]>([]);
   const [editando, setEditando] = useState<string | null>(null);
+  const [visualizando, setVisualizando] = useState<Personagem | null>(null);
   const [racas, setRacas] = useState<DnDBase[]>([]);
   const [classes, setClasses] = useState<DnDBase[]>([]);
   const [antecedentes, setAntecedentes] = useState<DnDBase[]>([]);
@@ -194,6 +195,24 @@ export default function PersonagensScreen() {
         await deletePersonagem({ objectId });
         await carregarPersonagens();
       }
+    }
+  };
+
+  const handleView = async (personagem: Personagem) => {
+    setVisualizando(personagem);
+    
+    // Carregar detalhes da raça, classe e antecedente
+    if (personagem.raca) {
+      const racaDetalhes = await getRacaDetalhes(personagem.raca);
+      setRacaDetalhes(racaDetalhes);
+    }
+    if (personagem.classe) {
+      const classeDetalhes = await getClasseDetalhes(personagem.classe);
+      setClasseDetalhes(classeDetalhes);
+    }
+    if (personagem.antecedente) {
+      const antecedenteDetalhes = await getAntecedenteDetalhes(personagem.antecedente);
+      setAntecedenteDetalhes(antecedenteDetalhes);
     }
   };
 
@@ -361,6 +380,12 @@ export default function PersonagensScreen() {
                   <View style={styles.buttonContainer}>
                     <TouchableOpacity
                       style={[styles.button, styles.primaryButton]}
+                      onPress={() => handleView(p)}
+                    >
+                      <Text style={styles.buttonText}>Visualizar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.button, styles.primaryButton]}
                       onPress={() => handleEdit(p)}
                     >
                       <Text style={styles.buttonText}>Editar</Text>
@@ -378,6 +403,75 @@ export default function PersonagensScreen() {
           )}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={visualizando !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setVisualizando(null);
+          setRacaDetalhes(null);
+          setClasseDetalhes(null);
+          setAntecedenteDetalhes(null);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{visualizando?.nome}</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setVisualizando(null);
+                  setRacaDetalhes(null);
+                  setClasseDetalhes(null);
+                  setAntecedenteDetalhes(null);
+                }}
+              >
+                <Text style={styles.closeButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScroll}>
+              {racaDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>Raça: {racaDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Velocidade: {racaDetalhes.speed}{'\n'}
+                    Idade: {racaDetalhes.age}{'\n'}
+                    Alinhamento: {racaDetalhes.alignment}{'\n'}
+                    Tamanho: {racaDetalhes.size_description}
+                  </Text>
+                </View>
+              )}
+
+              {classeDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>Classe: {classeDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Dados de vida: {classeDetalhes.hit_die}{'\n'}
+                    Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
+                  </Text>
+                </View>
+              )}
+
+              {antecedenteDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>Antecedente: {antecedenteDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Descrição: {antecedenteDetalhes.feature.desc}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.detailsContainer}>
+                <Text style={styles.topicText}>Background</Text>
+                <Text style={styles.normalText}>{visualizando?.background}</Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -542,5 +636,42 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     padding: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: 'rgb(228, 202, 164)',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: 'rgb(93, 64, 55)',
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    color: 'rgb(62, 39, 35)',
+    fontSize: 28,
+    fontFamily: 'BreatheFire',
+  },
+  closeButton: {
+    padding: 10,
+  },
+  closeButtonText: {
+    color: 'rgb(62, 39, 35)',
+    fontSize: 28,
+    fontFamily: 'BreatheFire',
+  },
+  modalScroll: {
+    maxHeight: '100%',
   },
 }); 
