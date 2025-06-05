@@ -1,6 +1,7 @@
 import { addUsuario } from '@/api/index';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useUserStore } from '@/store/userStore';
 import React, { useState } from 'react';
 import { Alert, Button, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 
@@ -24,104 +25,87 @@ const headersJson = {
 //export const [idUsuario, setIdUsuario] = useState('');;
 
 export default function LoginScreen() {
+  const { setUser, clearUser, isLoggedIn, nomeUsuario: loggedUserName, email: loggedUserEmail } = useUserStore();
   const [nomeUsuario, setNomeUsuario] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-
-  const [nomeLogged, setNomeLogged] = useState('');
-  const [emailLogged, setEmailLogged] = useState('');
-
-  const [existeNome, setExisteNome] = useState(false);
-  const [existeEmail, setExisteEmail] = useState(false);
-  const [senhaCorreta, setSenhaCorreta] = useState(false);
-  
-  const [idUsuario, setIdUsuario] = useState('');
 
   const handleLogout = () => {
     setNomeUsuario('');
     setEmail('');
     setSenha('');
-    setNomeLogged('');
-    setEmailLogged('');
-    setExisteNome(false);
-    setExisteEmail(false);
-    setSenhaCorreta(false);
-    setIdUsuario('');
+    clearUser();
   }
+
   const handleCreateAccount = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!nomeUsuario.trim() || !email.trim() || !senha.trim()){
       alert("O nome de usuário, o e-mail e a senha são obrigatórios!")
       return;
     }
-    jaExiste()
-    if (existeNome == false && existeEmail == false){
+    
+    try {
+      const response = await axios.get(urlUsuario, { headers });
+      const users = response.data.results;
+      
+      const userExists = users.some((user: any) => 
+        user.email === email || user.nomeUsuario === nomeUsuario
+      );
+
+      if (userExists) {
+        Alert.alert("Já existe alguém com esse nome e/ou email");
+        return;
+      }
+
       const usuario = {
         nomeUsuario: nomeUsuario,
         email: email,
         senha: senha
       }
-      const novoUsuario = await addUsuario(usuario)
-      if (novoUsuario){
-        alert("Você criou uma conta! Agora é só colocar os dados de novo e clicar em \"Login\"!")
-        setNomeUsuario('')
-        setEmail('')
-        setSenha('')
+      
+      const novoUsuario = await addUsuario(usuario);
+      if (novoUsuario) {
+        alert("Você criou uma conta! Agora é só colocar os dados de novo e clicar em \"Login\"!");
+        setNomeUsuario('');
+        setEmail('');
+        setSenha('');
       }
-    } else {
-      Alert.alert("Já existe alguém com esse nome e/ou email")
+    } catch (error) {
+      console.error('Error creating account:', error);
+      Alert.alert('Erro', 'Não foi possível criar a conta. Tente novamente.');
     }
-  } 
+  }
   
-  function jaExiste(){
-    axios.get(urlUsuario,{headers})
-    .then(response => {
-      setExisteNome(false);
-      setExisteEmail(false);
-      setSenhaCorreta(false)
-      for (var i = 0; i < response.data.results.length; i++){
-        if (response.data.results[i].email == email && response.data.results[i].nomeUsuario == nomeUsuario){
-          setExisteNome(true)
-          setExisteEmail(true)
-          if (response.data.results[i].senha == senha){
-            setNomeLogged(nomeUsuario)
-            setEmailLogged(email)
-            setSenhaCorreta(true)
-            setIdUsuario(response.data.results[i].objectId)
-          } else {
-            Alert.alert("Senha incorreta!")
-          }
-          return;
-        }         
-        else {
-          if (response.data.results[i].email == email){
-            setExisteNome(false)
-            setExisteEmail(true)
-            setSenhaCorreta(false)
-            Alert.alert("E-mail já existe!")
-            return
-          }
-          if (response.data.results[i].nomeUsuario == nomeUsuario){
-            setExisteNome(true)
-            setExisteEmail(false)
-            setSenhaCorreta(false)
-            Alert.alert("Este nome de usuário já existe!")
-            return
-          }
-        }
+  const handleLogin = async () => {
+    try {
+      console.log('Tentando login com:', { email, nomeUsuario });
+      const response = await axios.get(urlUsuario, { headers });
+      const users = response.data.results;
+      
+      // Procura por usuário que corresponda ao email OU nome de usuário
+      const user = users.find((u: any) => 
+        (u.email === email || u.nomeUsuario === nomeUsuario)
+      );
+
+      if (!user) {
+        Alert.alert("Não existe uma conta com esses dados");
+        return;
       }
-      Alert.alert("Não existe uma conta assim")
-      return 
-    })
-    .catch(error => {
-      // Handle login error
-      console.error('Login failed', error.response);
-      Alert.alert('Login Failed', 'Please check your credentials and try again.');
-      setExisteEmail(false)
-      setExisteNome(false)
-      setSenhaCorreta(false)
-      return;
-    });
+
+      if (user.senha !== senha) {
+        Alert.alert("Senha incorreta!");
+        return;
+      }
+
+      console.log('Login bem sucedido:', user);
+      setUser(user.objectId, user.nomeUsuario, user.email);
+      setNomeUsuario('');
+      setEmail('');
+      setSenha('');
+    } catch (error) {
+      console.error('Login failed', error);
+      Alert.alert('Erro', 'Não foi possível fazer login. Tente novamente.');
+    }
   }
 
   // se usuario estiver logado mostrar o nome e email, se não, mostrar o formulario
@@ -132,10 +116,10 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.container}>
-        { nomeLogged!='' && emailLogged && senhaCorreta &&
+        {isLoggedIn ? (
           <View style={styles.userInfo}>
-            <Text style={styles.topicText}>Bem-vindo, {nomeLogged}!</Text>
-            <Text style={styles.normalText}>Email: {emailLogged}</Text>
+            <Text style={styles.topicText}>Bem-vindo, {loggedUserName}!</Text>
+            <Text style={styles.normalText}>Email: {loggedUserEmail}</Text>
             <TouchableOpacity 
               style={[styles.button, styles.secondaryButton]} 
               onPress={handleLogout}
@@ -143,9 +127,7 @@ export default function LoginScreen() {
               <Text style={styles.buttonText}>Sair</Text>
             </TouchableOpacity>
           </View>
-        }
-
-        { !nomeLogged && !emailLogged && !senhaCorreta &&
+        ) : (
           <View style={styles.formContainer}>
             <Text style={styles.topicText}>Login</Text>
             
@@ -180,7 +162,7 @@ export default function LoginScreen() {
 
             <TouchableOpacity 
               style={[styles.button, styles.primaryButton]} 
-              onPress={jaExiste}
+              onPress={handleLogin}
             >
               <Text style={styles.buttonText}>Entrar</Text>
             </TouchableOpacity>
@@ -194,7 +176,7 @@ export default function LoginScreen() {
               <Text style={styles.buttonText}>Criar Conta</Text>
             </TouchableOpacity>
           </View>
-        }
+        )}
       </View>
     </ScrollView>
   );

@@ -1,36 +1,101 @@
 import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
 import { addPersonagem, deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
+import { useUserStore } from '@/store/userStore';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 
+interface Personagem {
+  objectId: string;
+  nome: string;
+  raca: string;
+  classe: string;
+  antecedente: string;
+  background: string;
+  usuarioId: string;
+  racaDetalhes?: any;
+  classeDetalhes?: any;
+  antecedenteDetalhes?: any;
+}
+
+interface FormData {
+  nome: string;
+  raca: string;
+  classe: string;
+  antecedente: string;
+  background: string;
+  usuarioId: string;
+}
+
+interface DnDBase {
+  index: string;
+  name: string;
+}
+
+interface RacaDetalhes extends DnDBase {
+  speed: number;
+  age: string;
+  alignment: string;
+  size_description: string;
+}
+
+interface ClasseDetalhes extends DnDBase {
+  hit_die: number;
+  proficiency_choices: Array<{
+    desc: string;
+  }>;
+}
+
+interface AntecedenteDetalhes extends DnDBase {
+  feature: {
+    desc: string;
+  };
+}
+
 export default function CreateScreen() {
-  const [personagens, setPersonagens] = useState([]);
-  const [racas, setRacas] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [antecedentes, setAntecedentes] = useState([]);
-  const [racaDetalhes, setRacaDetalhes] = useState(null);
-  const [classeDetalhes, setClasseDetalhes] = useState(null);
-  const [antecedenteDetalhes, setAntecedenteDetalhes] = useState(null);
-  const [form, setForm] = useState({
+  const { isLoggedIn, id: userId } = useUserStore();
+  const [personagens, setPersonagens] = useState<Personagem[]>([]);
+  const [racas, setRacas] = useState<DnDBase[]>([]);
+  const [classes, setClasses] = useState<DnDBase[]>([]);
+  const [antecedentes, setAntecedentes] = useState<DnDBase[]>([]);
+  const [racaDetalhes, setRacaDetalhes] = useState<RacaDetalhes | null>(null);
+  const [classeDetalhes, setClasseDetalhes] = useState<ClasseDetalhes | null>(null);
+  const [antecedenteDetalhes, setAntecedenteDetalhes] = useState<AntecedenteDetalhes | null>(null);
+  const [form, setForm] = useState<FormData>({
     nome: '',
     raca: '',
     classe: '',
     antecedente: '',
     background: '',
+    usuarioId: '',
   });
-  const [editando, setEditando] = useState(null);
+  const [editando, setEditando] = useState<string | null>(null);
 
   useEffect(() => {
-    carregarPersonagens();
-    carregarDadosDnD();
-  }, []);
+    if (isLoggedIn) {
+      console.log('Usuário logado, ID:', userId);
+      carregarPersonagens();
+      carregarDadosDnD();
+      // Initialize form with userId
+      setForm(prev => ({ ...prev, usuarioId: userId }));
+    }
+  }, [isLoggedIn, userId]);
 
   async function carregarPersonagens() {
-    const dados = await getPersonagens();
-    setPersonagens(dados);
+    try {
+      console.log('Carregando personagens para usuário:', userId);
+      const dados = await getPersonagens();
+      console.log('Todos os personagens:', dados);
+      // Filter characters to show only those created by the logged-in user
+      const userPersonagens = dados.filter((p: Personagem) => p.usuarioId === userId);
+      console.log('Personagens do usuário:', userPersonagens);
+      setPersonagens(userPersonagens);
+    } catch (error) {
+      console.error('Erro ao carregar personagens:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os personagens. Tente novamente.');
+    }
   }
 
   async function carregarDadosDnD() {
@@ -47,56 +112,73 @@ export default function CreateScreen() {
     setAntecedentes(antecedentesData);
   }
 
-
   async function carregarRacaDetalhes(index: string) {
-    setForm({nome:form.nome, raca:index, classe:form.classe, antecedente:form.antecedente, background:form.background})
+    setForm({...form, raca: index});
     const detalhes = await getRacaDetalhes(index);
     setRacaDetalhes(detalhes);
   }
 
   async function carregarClasseDetalhes(index: string) {
-    setForm({nome:form.nome, raca:form.raca, classe:index, antecedente:form.antecedente, background:form.background})
+    setForm({...form, classe: index});
     const detalhes = await getClasseDetalhes(index);
     setClasseDetalhes(detalhes);
   }
 
   async function carregarAntecedenteDetalhes(index: string) {
-    setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:index, background:form.background})
+    setForm({...form, antecedente: index});
     const detalhes = await getAntecedenteDetalhes(index);
     setAntecedenteDetalhes(detalhes);
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     
+    if (!isLoggedIn) {
+      Alert.alert('Erro', 'Você precisa estar logado para criar um personagem.');
+      return;
+    }
+
+    if (!userId) {
+      Alert.alert('Erro', 'ID do usuário não encontrado. Por favor, faça login novamente.');
+      return;
+    }
+
     if (!form.nome.trim()) {
       alert('O nome do personagem é obrigatório!');
       return;
     }
 
     try {
+      console.log('Estado atual do usuário:', { isLoggedIn, userId });
+      console.log('Formulário atual:', form);
+      
       // Adicionar detalhes da raça, classe e antecedente ao personagem
       const personagemCompleto = {
-        ...form,
-        racaDetalhes: racaDetalhes,
-        classeDetalhes: classeDetalhes,
-        antecedenteDetalhes: antecedenteDetalhes
+        nome: form.nome,
+        raca: form.raca,
+        classe: form.classe,
+        antecedente: form.antecedente,
+        background: form.background,
+        usuarioId: userId, // Garantir que estamos usando o userId do store
       };
+
+      console.log('Tentando criar/atualizar personagem:', personagemCompleto);
 
       if (editando) {
         const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
         if (atualizado) {
           setEditando(null);
-          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: ''});
+          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: userId });
           setRacaDetalhes(null);
           setClasseDetalhes(null);
           setAntecedenteDetalhes(null);
           await carregarPersonagens();
+          alert('Personagem atualizado com sucesso!');
         }
       } else {
         const novoPersonagem = await addPersonagem(personagemCompleto);
         if (novoPersonagem) {
-          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: userId });
           setRacaDetalhes(null);
           setClasseDetalhes(null);
           setAntecedenteDetalhes(null);
@@ -104,13 +186,13 @@ export default function CreateScreen() {
           alert('Personagem criado com sucesso!');
         }
       }
-    } catch (error) {
-      console.error('Erro ao salvar personagem:', error);
-      alert('Erro ao salvar personagem. Tente novamente.');
+    } catch (error: any) {
+      console.error('Erro ao salvar personagem:', error.response?.data || error.message);
+      Alert.alert('Erro', 'Não foi possível salvar o personagem. Tente novamente.');
     }
   };
 
-  const handleEdit = (personagem: object) => {
+  const handleEdit = async (personagem: Personagem) => {
     setEditando(personagem.objectId);
     setForm({
       nome: personagem.nome,
@@ -118,17 +200,21 @@ export default function CreateScreen() {
       classe: personagem.classe,
       antecedente: personagem.antecedente,
       background: personagem.background,
+      usuarioId: personagem.usuarioId,
     });
     
     // Carregar detalhes da raça, classe e antecedente
     if (personagem.raca) {
-      carregarRacaDetalhes(personagem.raca);
+      const racaDetalhes = await getRacaDetalhes(personagem.raca);
+      setRacaDetalhes(racaDetalhes);
     }
     if (personagem.classe) {
-      carregarClasseDetalhes(personagem.classe);
+      const classeDetalhes = await getClasseDetalhes(personagem.classe);
+      setClasseDetalhes(classeDetalhes);
     }
     if (personagem.antecedente) {
-      carregarAntecedenteDetalhes(personagem.antecedente);
+      const antecedenteDetalhes = await getAntecedenteDetalhes(personagem.antecedente);
+      setAntecedenteDetalhes(antecedenteDetalhes);
     }
   };
 
@@ -183,123 +269,134 @@ export default function CreateScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <Text style={styles.topicText}>Novo Personagem</Text>
-          
-          <Text style={styles.normalText}>Nome:</Text>
-          <TextInput 
-            style={styles.form}
-            value={form.nome}
-            onChangeText={(text) => setForm({nome: text, raca:form.raca, classe:form.raca, antecedente: form.antecedente, background: form.background})}
-          />
-          
-          <Text style={styles.normalText}>Raça:</Text>
-          <Picker 
-            onValueChange={carregarRacaDetalhes} 
-            selectedValue={form.raca} 
-            style={styles.form}
-            dropdownIconColor="rgb(62, 39, 35)"
-            itemStyle={{ color: 'black' }}
-          >
-            <Picker.Item value={''} label='Selecione uma raça'/>
-            {racas.map(raca => (
-              <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
-            ))}
-          </Picker>
-          
-          {racaDetalhes && 
-            <View style={styles.detailsContainer}>
-              <Text style={styles.topicText}>{racaDetalhes.name}</Text>
+          {!isLoggedIn ? (
+            <View style={styles.loginRequired}>
+              <Text style={styles.topicText}>Login Necessário</Text>
               <Text style={styles.normalText}>
-                Velocidade: {racaDetalhes.speed}{'\n'}
-                Idade: {racaDetalhes.age}{'\n'}
-                Alinhamento: {racaDetalhes.alignment}{'\n'}
-                Tamanho: {racaDetalhes.size_description}
+                Você precisa estar logado para criar um personagem.
               </Text>
             </View>
-          }
-
-          <Text style={styles.normalText}>Classe:</Text>
-          <Picker 
-            onValueChange={carregarClasseDetalhes} 
-            selectedValue={form.classe} 
-            style={styles.form}
-            dropdownIconColor="rgb(62, 39, 35)"
-            itemStyle={{ color: 'black' }}
-          >
-            <Picker.Item value={''} label='Selecione uma classe'/>
-            {classes.map(classe => (
-              <Picker.Item key={classe.index} value={classe.index} label={classe.name}/>
-            ))}
-          </Picker>
-          
-          {classeDetalhes && (
-            <View style={styles.detailsContainer}>
-              <Text style={styles.topicText}>{classeDetalhes.name}</Text>
-              <Text style={styles.normalText}>
-                Dados de vida: {classeDetalhes.hit_die}{'\n'}
-                Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
-              </Text>
-            </View>
-          )}
-
-          <Text style={styles.normalText}>Antecedente:</Text>
-          <Picker 
-            onValueChange={carregarAntecedenteDetalhes} 
-            selectedValue={form.antecedente} 
-            style={styles.form}
-            dropdownIconColor="rgb(62, 39, 35)"
-            itemStyle={{ color: 'black' }}
-          >
-            <Picker.Item value={''} label='Selecione um antecedente'/>
-            {antecedentes.map(antecedente => (
-              <Picker.Item key={antecedente.index} value={antecedente.index} label={antecedente.name}/>
-            ))}
-          </Picker>
-          
-          {antecedenteDetalhes && (
-            <View style={styles.detailsContainer}>
-              <Text style={styles.topicText}>{antecedenteDetalhes.name}</Text>
-              {antecedenteDetalhes.name &&
-                <Text style={styles.normalText}>
-                  Descrição: {antecedenteDetalhes.feature.desc}
-                </Text>
-              }
-            </View>
-          )}
-
-          <Text style={styles.normalText}>Background</Text>
-          <TextInput 
-            value={form.background} 
-            onChangeText={(text) => setForm({nome:form.nome, raca:form.raca, classe:form.classe, antecedente:form.antecedente,background:text})} 
-            multiline 
-            numberOfLines={5} 
-            style={styles.form}
-          />
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.primaryButton]} 
-              onPress={handleSubmit}
-            >
-              <Text style={styles.buttonText}>
-                {editando ? 'Atualizar' : 'Cadastrar'}
-              </Text>
-            </TouchableOpacity>
-            {editando && (
-              <TouchableOpacity 
-                style={[styles.button, styles.secondaryButton]} 
-                onPress={() => {
-                  setEditando(null);
-                  setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
-                  setRacaDetalhes(null);
-                  setClasseDetalhes(null);
-                  setAntecedenteDetalhes(null);
-                }}
+          ) : (
+            <>
+              <Text style={styles.topicText}>Novo Personagem</Text>
+              
+              <Text style={styles.normalText}>Nome:</Text>
+              <TextInput 
+                style={styles.form}
+                value={form.nome}
+                onChangeText={(text) => setForm({...form, nome: text})}
+              />
+              
+              <Text style={styles.normalText}>Raça:</Text>
+              <Picker 
+                onValueChange={carregarRacaDetalhes} 
+                selectedValue={form.raca} 
+                style={styles.form}
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
               >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                <Picker.Item value={''} label='Selecione uma raça'/>
+                {racas.map(raca => (
+                  <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
+                ))}
+              </Picker>
+              
+              {racaDetalhes && 
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{racaDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Velocidade: {racaDetalhes.speed}{'\n'}
+                    Idade: {racaDetalhes.age}{'\n'}
+                    Alinhamento: {racaDetalhes.alignment}{'\n'}
+                    Tamanho: {racaDetalhes.size_description}
+                  </Text>
+                </View>
+              }
+
+              <Text style={styles.normalText}>Classe:</Text>
+              <Picker 
+                onValueChange={carregarClasseDetalhes} 
+                selectedValue={form.classe} 
+                style={styles.form}
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
+              >
+                <Picker.Item value={''} label='Selecione uma classe'/>
+                {classes.map(classe => (
+                  <Picker.Item key={classe.index} value={classe.index} label={classe.name}/>
+                ))}
+              </Picker>
+              
+              {classeDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{classeDetalhes.name}</Text>
+                  <Text style={styles.normalText}>
+                    Dados de vida: {classeDetalhes.hit_die}{'\n'}
+                    Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
+                  </Text>
+                </View>
+              )}
+
+              <Text style={styles.normalText}>Antecedente:</Text>
+              <Picker 
+                onValueChange={carregarAntecedenteDetalhes} 
+                selectedValue={form.antecedente} 
+                style={styles.form}
+                dropdownIconColor="rgb(62, 39, 35)"
+                itemStyle={{ color: 'black' }}
+              >
+                <Picker.Item value={''} label='Selecione um antecedente'/>
+                {antecedentes.map(antecedente => (
+                  <Picker.Item key={antecedente.index} value={antecedente.index} label={antecedente.name}/>
+                ))}
+              </Picker>
+              
+              {antecedenteDetalhes && (
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.topicText}>{antecedenteDetalhes.name}</Text>
+                  {antecedenteDetalhes.name &&
+                    <Text style={styles.normalText}>
+                      Descrição: {antecedenteDetalhes.feature.desc}
+                    </Text>
+                  }
+                </View>
+              )}
+
+              <Text style={styles.normalText}>Background</Text>
+              <TextInput 
+                value={form.background} 
+                onChangeText={(text) => setForm({...form, background: text})} 
+                multiline 
+                numberOfLines={5} 
+                style={styles.form}
+              />
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.primaryButton]} 
+                  onPress={handleSubmit}
+                >
+                  <Text style={styles.buttonText}>
+                    {editando ? 'Atualizar' : 'Cadastrar'}
+                  </Text>
+                </TouchableOpacity>
+                {editando && (
+                  <TouchableOpacity 
+                    style={[styles.button, styles.secondaryButton]} 
+                    onPress={() => {
+                      setEditando(null);
+                      setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: userId });
+                      setRacaDetalhes(null);
+                      setClasseDetalhes(null);
+                      setAntecedenteDetalhes(null);
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Cancelar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -412,5 +509,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'BreatheFire',
     textAlign: 'center',
+  },
+  loginRequired: {
+    width: '100%',
+    alignItems: 'center',
+    padding: 20,
   },
 });

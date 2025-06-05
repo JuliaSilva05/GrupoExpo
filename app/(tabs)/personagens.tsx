@@ -1,34 +1,96 @@
 import { deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
 import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
+import { useUserStore } from '@/store/userStore';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
+interface Personagem {
+  objectId: string;
+  nome: string;
+  raca: string;
+  classe: string;
+  antecedente: string;
+  background: string;
+  usuarioId: string;
+  racaDetalhes?: RacaDetalhes;
+  classeDetalhes?: ClasseDetalhes;
+  antecedenteDetalhes?: AntecedenteDetalhes;
+}
+
+interface FormData {
+  nome: string;
+  raca: string;
+  classe: string;
+  antecedente: string;
+  background: string;
+  usuarioId: string;
+}
+
+interface DnDBase {
+  index: string;
+  name: string;
+}
+
+interface RacaDetalhes extends DnDBase {
+  speed: number;
+  age: string;
+  alignment: string;
+  size_description: string;
+}
+
+interface ClasseDetalhes extends DnDBase {
+  hit_die: number;
+  proficiency_choices: Array<{
+    desc: string;
+  }>;
+}
+
+interface AntecedenteDetalhes extends DnDBase {
+  feature: {
+    desc: string;
+  };
+}
+
 export default function PersonagensScreen() {
-  const [personagens, setPersonagens] = useState([]);
-  const [editando, setEditando] = useState(null);
-  const [racas, setRacas] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [antecedentes, setAntecedentes] = useState([]);
-  const [racaDetalhes, setRacaDetalhes] = useState(null);
-  const [classeDetalhes, setClasseDetalhes] = useState(null);
-  const [antecedenteDetalhes, setAntecedenteDetalhes] = useState(null);
-  const [form, setForm] = useState({
+  const { isLoggedIn, id: userId } = useUserStore();
+  const [personagens, setPersonagens] = useState<Personagem[]>([]);
+  const [editando, setEditando] = useState<string | null>(null);
+  const [racas, setRacas] = useState<DnDBase[]>([]);
+  const [classes, setClasses] = useState<DnDBase[]>([]);
+  const [antecedentes, setAntecedentes] = useState<DnDBase[]>([]);
+  const [racaDetalhes, setRacaDetalhes] = useState<RacaDetalhes | null>(null);
+  const [classeDetalhes, setClasseDetalhes] = useState<ClasseDetalhes | null>(null);
+  const [antecedenteDetalhes, setAntecedenteDetalhes] = useState<AntecedenteDetalhes | null>(null);
+  const [form, setForm] = useState<FormData>({
     nome: '',
     raca: '',
     classe: '',
     antecedente: '',
     background: '',
+    usuarioId: '',
   });
 
   useEffect(() => {
-    carregarPersonagens();
-    carregarDadosDnD();
-  }, []);
+    if (isLoggedIn) {
+      carregarPersonagens();
+      carregarDadosDnD();
+    }
+  }, [isLoggedIn]);
 
   async function carregarPersonagens() {
-    const dados = await getPersonagens();
-    setPersonagens(dados);
+    try {
+      const dados = await getPersonagens();
+      console.log('Todos os personagens:', dados);
+      console.log('ID do usuário atual:', userId);
+      // Filter characters to show only those created by the logged-in user
+      const userPersonagens = dados.filter((p: Personagem) => p.usuarioId === userId);
+      console.log('Personagens do usuário:', userPersonagens);
+      setPersonagens(userPersonagens);
+    } catch (error) {
+      console.error('Erro ao carregar personagens:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os personagens. Tente novamente.');
+    }
   }
 
   async function carregarDadosDnD() {
@@ -63,7 +125,7 @@ export default function PersonagensScreen() {
     setAntecedenteDetalhes(detalhes);
   }
 
-  const handleEdit = async (personagem: object) => {
+  const handleEdit = async (personagem: Personagem) => {
     setEditando(personagem.objectId);
     setForm({
       nome: personagem.nome,
@@ -71,6 +133,7 @@ export default function PersonagensScreen() {
       classe: personagem.classe,
       antecedente: personagem.antecedente,
       background: personagem.background,
+      usuarioId: personagem.usuarioId,
     });
     
     // Carregar detalhes da raça, classe e antecedente
@@ -98,13 +161,14 @@ export default function PersonagensScreen() {
       ...form,
       racaDetalhes: racaDetalhes,
       classeDetalhes: classeDetalhes,
-      antecedenteDetalhes: antecedenteDetalhes
+      antecedenteDetalhes: antecedenteDetalhes,
+      usuarioId: userId, // Ensure the character is associated with the current user
     };
 
     const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
     if (atualizado) {
       setEditando(null);
-      setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+      setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
       setRacaDetalhes(null);
       setClasseDetalhes(null);
       setAntecedenteDetalhes(null);
@@ -142,7 +206,7 @@ export default function PersonagensScreen() {
               style={styles.backButton}
               onPress={() => {
                 setEditando(null);
-                setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+                setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
                 setRacaDetalhes(null);
                 setClasseDetalhes(null);
                 setAntecedenteDetalhes(null);
@@ -159,7 +223,14 @@ export default function PersonagensScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          {editando ? (
+          {!isLoggedIn ? (
+            <View style={styles.loginRequired}>
+              <Text style={styles.topicText}>Login Necessário</Text>
+              <Text style={styles.normalText}>
+                Você precisa estar logado para ver e gerenciar seus personagens.
+              </Text>
+            </View>
+          ) : editando ? (
             <View style={styles.editContainer}>
               <Text style={styles.topicText}>Editar Personagem</Text>
               
@@ -265,7 +336,7 @@ export default function PersonagensScreen() {
                   style={[styles.button, styles.secondaryButton]}
                   onPress={() => {
                     setEditando(null);
-                    setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '' });
+                    setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
                     setRacaDetalhes(null);
                     setClasseDetalhes(null);
                     setAntecedenteDetalhes(null);
@@ -466,5 +537,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'BreatheFire',
     textAlign: 'center',
+  },
+  loginRequired: {
+    width: '100%',
+    alignItems: 'center',
+    padding: 20,
   },
 }); 
