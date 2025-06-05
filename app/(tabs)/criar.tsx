@@ -175,7 +175,7 @@ export default function CreateScreen() {
         <Text style={styles.headerText}>CRIAR PERSONAGEM</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{flexGrow:1}}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <Text style={styles.topicText}>Novo Personagem</Text>
           
@@ -294,37 +294,6 @@ export default function CreateScreen() {
               </TouchableOpacity>
             )}
           </View>
-
-          {personagens.length > 0 && (
-            <View style={styles.personagensContainer}>
-              <Text style={styles.topicText}>Personagens Cadastrados</Text>
-              {personagens.map((p) => (
-                <View key={p.objectId} style={styles.personagemCard}>
-                  <Text style={styles.normalText}>
-                    {p.nome}{'\n'}
-                    Raça: {p.racaDetalhes ? p.racaDetalhes.name : p.raca}{'\n'}
-                    Classe: {p.classeDetalhes ? p.classeDetalhes.name : p.classe}{'\n'}
-                    Antecedente: {p.antecedenteDetalhes ? p.antecedenteDetalhes.name : p.antecedente}{'\n'}
-                    Background: {p.background}
-                  </Text>
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity 
-                      style={[styles.button, styles.primaryButton]} 
-                      onPress={() => handleEdit(p)}
-                    >
-                      <Text style={styles.buttonText}>Editar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.button, styles.secondaryButton]} 
-                      onPress={() => handleDelete(p.objectId)}
-                    >
-                      <Text style={styles.buttonText}>Deletar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
       </ScrollView>
     </View>
@@ -354,10 +323,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
     fontFamily: 'Draconis',
   },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 100,
+  },
   container: {
     flex: 1,
     paddingTop: 45,
-    paddingBottom: 100,
     display: 'flex',
     alignItems: 'center',
     backgroundColor: 'transparent',
@@ -406,18 +378,6 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 20,
     marginBottom: 20,
-  },
-  personagensContainer: {
-    width: '100%',
-    padding: 20,
-  },
-  personagemCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: 8,
-    padding: 15,
-    marginTop: 15,
-    borderWidth: 2,
-    borderColor: 'rgb(93, 64, 55)',
   },
   button: {
     paddingVertical: 12,
