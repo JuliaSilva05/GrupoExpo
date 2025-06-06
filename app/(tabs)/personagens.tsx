@@ -485,14 +485,13 @@ const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
-    height: '12%',
+    height: '10.5%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgb(53, 22, 22)',
     borderBottomWidth: 2,
     borderBottomColor: 'rgb(93, 64, 55)',
-    paddingBottom: 10,
   },
   headerContent: {
     flexDirection: 'row',
@@ -526,10 +525,8 @@ const styles = StyleSheet.create({
   headerText: {
     color: 'rgb(228, 202, 164)',
     fontSize: 34,
+    marginTop: 30,
     fontFamily: 'Draconis',
-    textAlign: 'center',
-    flex: 1,
-    marginTop: 0,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -606,10 +603,10 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     borderRadius: 8,
     borderWidth: 2,
-    minWidth: 120,
+    minWidth: 83,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -617,6 +614,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    marginHorizontal: 5
   },
   primaryButton: {
     backgroundColor: 'rgb(233, 84, 47)',
