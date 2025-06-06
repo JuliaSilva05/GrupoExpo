@@ -1,6 +1,7 @@
 import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
 import { addPersonagem, deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
 import { useUserStore } from '@/store/userStore';
+import { useCharacterStore } from '@/store/characterStore';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Picker } from '@react-native-picker/picker';
@@ -56,7 +57,7 @@ interface AntecedenteDetalhes extends DnDBase {
 
 export default function CreateScreen() {
   const { isLoggedIn, id: userId } = useUserStore();
-  const [personagens, setPersonagens] = useState<Personagem[]>([]);
+  const { characters, fetchCharacters, addCharacter, updateCharacter, deleteCharacter } = useCharacterStore();
   const [racas, setRacas] = useState<DnDBase[]>([]);
   const [classes, setClasses] = useState<DnDBase[]>([]);
   const [antecedentes, setAntecedentes] = useState<DnDBase[]>([]);
@@ -76,27 +77,11 @@ export default function CreateScreen() {
   useEffect(() => {
     if (isLoggedIn) {
       console.log('Usuário logado, ID:', userId);
-      carregarPersonagens();
+      fetchCharacters(userId);
       carregarDadosDnD();
-      // Initialize form with userId
       setForm(prev => ({ ...prev, usuarioId: userId }));
     }
   }, [isLoggedIn, userId]);
-
-  async function carregarPersonagens() {
-    try {
-      console.log('Carregando personagens para usuário:', userId);
-      const dados = await getPersonagens();
-      console.log('Todos os personagens:', dados);
-      // Filter characters to show only those created by the logged-in user
-      const userPersonagens = dados.filter((p: Personagem) => p.usuarioId === userId);
-      console.log('Personagens do usuário:', userPersonagens);
-      setPersonagens(userPersonagens);
-    } catch (error) {
-      console.error('Erro ao carregar personagens:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os personagens. Tente novamente.');
-    }
-  }
 
   async function carregarDadosDnD() {
     // Carregar raças
@@ -152,14 +137,13 @@ export default function CreateScreen() {
       console.log('Estado atual do usuário:', { isLoggedIn, userId });
       console.log('Formulário atual:', form);
       
-      // Adicionar detalhes da raça, classe e antecedente ao personagem
       const personagemCompleto = {
         nome: form.nome,
         raca: form.raca,
         classe: form.classe,
         antecedente: form.antecedente,
         background: form.background,
-        usuarioId: userId, // Garantir que estamos usando o userId do store
+        usuarioId: userId,
       };
 
       console.log('Tentando criar/atualizar personagem:', personagemCompleto);
@@ -172,7 +156,7 @@ export default function CreateScreen() {
           setRacaDetalhes(null);
           setClasseDetalhes(null);
           setAntecedenteDetalhes(null);
-          await carregarPersonagens();
+          updateCharacter(atualizado);
           alert('Personagem atualizado com sucesso!');
         }
       } else {
@@ -182,7 +166,7 @@ export default function CreateScreen() {
           setRacaDetalhes(null);
           setClasseDetalhes(null);
           setAntecedenteDetalhes(null);
-          await carregarPersonagens();
+          addCharacter(novoPersonagem);
           alert('Personagem criado com sucesso!');
         }
       }
@@ -219,48 +203,26 @@ export default function CreateScreen() {
   };
 
   const handleDelete = async (objectId: string) => {
-    if (Platform.OS === 'android' || Platform.OS === 'ios'){
+    if (Platform.OS === 'android' || Platform.OS === 'ios') {
       Alert.alert('Tem certeza que deseja excluir este personagem?', '',
-      [
-        { text: 'Cancelar'},
-        { text: 'Sim',
-          onPress: async () => {
-            await deletePersonagem({ objectId });
-            await carregarPersonagens();
-          }          
-        },
-      ])
-    } else if (Platform.OS === 'web'){
+        [
+          { text: 'Cancelar' },
+          {
+            text: 'Sim',
+            onPress: async () => {
+              await deletePersonagem({ objectId });
+              deleteCharacter(objectId);
+            }
+          },
+        ])
+    } else if (Platform.OS === 'web') {
       if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
         await deletePersonagem({ objectId });
-        await carregarPersonagens();
+        deleteCharacter(objectId);
       }
     }
-
-    /*
-    if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
-      await deletePersonagem({ objectId });
-      await carregarPersonagens();
-    }*/
   };
 
-/*
-<FlatList data={personagens} renderItem={({item}) => 
-              <ThemedView>
-                <ThemedText>
-                  {item.nome} {'\n'}
-                  Raça: {item.racaDetalhes ? item.racaDetalhes.name : item.raca} {'\n'}
-                  Classe: {item.classeDetalhes ? item.classeDetalhes.name : item.classe} {'\n'}
-                  Antecedente: {item.antecedenteDetalhes ? item.antecedenteDetalhes.name : item.antecedente} {'\n'}
-                  Background: {item.background}
-                </ThemedText>
-                <Button onPress={() => handleEdit(item)} title='Editar'/>
-                <Button onPress={() => handleDelete(item)} title='Deletar'/>
-                
-              </ThemedView>}
-            />
-            */
-  
   return (
     <View style={styles.root}>
       <View style={styles.header}>

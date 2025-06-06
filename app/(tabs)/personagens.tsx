@@ -1,6 +1,7 @@
 import { deletePersonagem, getPersonagens, updatePersonagem } from '@/api/index';
 import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses, getRacaDetalhes, getRacas } from '@/api/dndApi';
 import { useUserStore } from '@/store/userStore';
+import { useCharacterStore } from '@/store/characterStore';
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -54,7 +55,7 @@ interface AntecedenteDetalhes extends DnDBase {
 
 export default function PersonagensScreen() {
   const { isLoggedIn, id: userId } = useUserStore();
-  const [personagens, setPersonagens] = useState<Personagem[]>([]);
+  const { characters, fetchCharacters, updateCharacter, deleteCharacter } = useCharacterStore();
   const [editando, setEditando] = useState<string | null>(null);
   const [visualizando, setVisualizando] = useState<Personagem | null>(null);
   const [racas, setRacas] = useState<DnDBase[]>([]);
@@ -74,25 +75,10 @@ export default function PersonagensScreen() {
 
   useEffect(() => {
     if (isLoggedIn) {
-      carregarPersonagens();
+      fetchCharacters(userId);
       carregarDadosDnD();
     }
-  }, [isLoggedIn]);
-
-  async function carregarPersonagens() {
-    try {
-      const dados = await getPersonagens();
-      console.log('Todos os personagens:', dados);
-      console.log('ID do usuário atual:', userId);
-      // Filter characters to show only those created by the logged-in user
-      const userPersonagens = dados.filter((p: Personagem) => p.usuarioId === userId);
-      console.log('Personagens do usuário:', userPersonagens);
-      setPersonagens(userPersonagens);
-    } catch (error) {
-      console.error('Erro ao carregar personagens:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os personagens. Tente novamente.');
-    }
-  }
+  }, [isLoggedIn, userId]);
 
   async function carregarDadosDnD() {
     // Carregar raças
@@ -163,7 +149,7 @@ export default function PersonagensScreen() {
       racaDetalhes: racaDetalhes,
       classeDetalhes: classeDetalhes,
       antecedenteDetalhes: antecedenteDetalhes,
-      usuarioId: userId, // Ensure the character is associated with the current user
+      usuarioId: userId,
     };
 
     const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
@@ -173,7 +159,7 @@ export default function PersonagensScreen() {
       setRacaDetalhes(null);
       setClasseDetalhes(null);
       setAntecedenteDetalhes(null);
-      await carregarPersonagens();
+      updateCharacter(atualizado);
     }
   };
 
@@ -186,14 +172,14 @@ export default function PersonagensScreen() {
             text: 'Sim',
             onPress: async () => {
               await deletePersonagem({ objectId });
-              await carregarPersonagens();
+              deleteCharacter(objectId);
             }
           },
         ])
     } else if (Platform.OS === 'web') {
       if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
         await deletePersonagem({ objectId });
-        await carregarPersonagens();
+        deleteCharacter(objectId);
       }
     }
   };
@@ -368,7 +354,7 @@ export default function PersonagensScreen() {
           ) : (
             <View style={styles.listContainer}>
               <Text style={styles.topicText}>Seus Personagens</Text>
-              {personagens.map((p) => (
+              {characters.map((p) => (
                 <View key={p.objectId} style={styles.personagemCard}>
                   <Text style={styles.normalText}>
                     {p.nome}{'\n'}
