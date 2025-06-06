@@ -14,10 +14,10 @@ export default function HomeScreen() {
         <View style={styles.container}>
 
         <Text style = {styles.topicText}>Bem Vindo!</Text>
-        <Text style = {styles.normalText}>O RPG Ficha Fácil é o melhor site para criar fichas para seus personagens de RPG!</Text>
+        <Text style = {styles.normalText}>O RPG Ficha Fácil é o melhor app para criar fichas para seus personagens de RPG!</Text>
 
         <Text style = {styles.topicText}>Crie</Text>
-        <Text style = {styles.normalText}>Use a página de criação integrada com a API D&D 5e para facilmente criar o personagem da sua imaginação.</Text>
+        <Text style = {styles.normalText}>Use a tela de criação integrada com a API D&D 5e para facilmente criar o personagem da sua imaginação.</Text>
 
         <Text style = {styles.topicText}>Organize</Text>
         <Text style = {styles.normalText}>Salve seus personagens para agrupar todos os aventureiros que você precisa para sua próxima jornada.</Text>
