@@ -4,6 +4,7 @@ Link do site publicado:<br>
 https://expo.dev/accounts/rafaelsampa/projects/GrupoExpo/builds/377b571a-ee43-4b93-8b77-d0e5c5ceb65b
 
 Vídeo de visão geral:<br>
+https://youtube.com/shorts/d4bw6-Ag30U
 
 
 Membros:
