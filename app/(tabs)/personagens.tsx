@@ -230,10 +230,7 @@ export default function PersonagensScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-        <View style={{ minHeight: '100%' }}>
-          <View style={styles.root}>
-            <View style={styles.header}>
+      <View style={styles.header}>
               {editando ? (
                 <View style={styles.headerContent}>
                   <TouchableOpacity
@@ -254,6 +251,10 @@ export default function PersonagensScreen() {
                 <Text style={styles.headerText}>PERSONAGENS</Text>
               )}
             </View>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: editando ? 120 : 40 }} keyboardShouldPersistTaps="handled">
+        <View style={{ minHeight: '100%' }}>
+          <View style={styles.root}>
+            
 
             <View style={styles.container}>
               {!isLoggedIn ? (
@@ -513,8 +514,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    marginTop: 30,
-    paddingHorizontal: 50,
+    paddingHorizontal: 20,
     height: '100%',
   },
   backButton: {
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Draconis',
     marginTop: -5,
   },
-  headerText: {
+   headerText: {
     color: 'rgb(228, 202, 164)',
     fontSize: 34,
     marginTop: 30,
@@ -558,6 +558,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 20,
     alignItems: 'center',
+    paddingBottom: 40,
   },
   listContainer: {
     width: '100%',
@@ -614,7 +615,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 0,
   },
   button: {
     paddingVertical: 12,
