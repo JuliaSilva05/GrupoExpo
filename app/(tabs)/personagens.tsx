@@ -74,11 +74,20 @@ export default function PersonagensScreen() {
   });
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchCharacters(userId);
-      carregarDadosDnD();
-    }
-  }, [isLoggedIn, userId]);
+    const loadCharacters = async () => {
+      if (userId) {
+        try {
+          await fetchCharacters(userId);
+          carregarDadosDnD();
+        } catch (error) {
+          console.error('Erro ao carregar personagens:', error);
+          Alert.alert('Erro', 'Não foi possível carregar os personagens');
+        }
+      }
+    };
+
+    loadCharacters();
+  }, [userId]);
 
   async function carregarDadosDnD() {
     // Carregar raças
@@ -140,47 +149,60 @@ export default function PersonagensScreen() {
 
   const handleUpdate = async () => {
     if (!form.nome.trim()) {
-      alert('O nome do personagem é obrigatório!');
+      Alert.alert('Erro', 'O nome do personagem é obrigatório');
       return;
     }
 
-    const personagemCompleto = {
-      ...form,
-      racaDetalhes: racaDetalhes,
-      classeDetalhes: classeDetalhes,
-      antecedenteDetalhes: antecedenteDetalhes,
-      usuarioId: userId,
-    };
-
-    const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
-    if (atualizado) {
+    try {
+      const personagemCompleto = {
+        ...form,
+        racaDetalhes: racaDetalhes,
+        classeDetalhes: classeDetalhes,
+        antecedenteDetalhes: antecedenteDetalhes,
+        usuarioId: userId,
+        objectId: editando || '',
+        createdAt: characters.find(p => p.objectId === editando)?.createdAt || '',
+        updatedAt: characters.find(p => p.objectId === editando)?.updatedAt || '',
+      };
+      await updateCharacter(personagemCompleto);
       setEditando(null);
       setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
       setRacaDetalhes(null);
       setClasseDetalhes(null);
       setAntecedenteDetalhes(null);
-      updateCharacter(atualizado);
+      Alert.alert('Sucesso', 'Personagem atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar personagem:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar o personagem');
     }
   };
 
   const handleDelete = async (objectId: string) => {
-    if (Platform.OS === 'android' || Platform.OS === 'ios') {
-      Alert.alert('Tem certeza que deseja excluir este personagem?', '',
-        [
-          { text: 'Cancelar' },
-          {
-            text: 'Sim',
-            onPress: async () => {
-              await deletePersonagem({ objectId });
-              deleteCharacter(objectId);
-            }
-          },
-        ])
-    } else if (Platform.OS === 'web') {
-      if (window.confirm('Tem certeza que deseja excluir este personagem?')) {
-        await deletePersonagem({ objectId });
-        deleteCharacter(objectId);
+    try {
+      const confirmMessage = Platform.OS === 'web' 
+        ? 'Tem certeza que deseja excluir este personagem?' 
+        : 'Tem certeza que deseja excluir este personagem?';
+
+      const confirmed = Platform.OS === 'web'
+        ? window.confirm(confirmMessage)
+        : await new Promise<boolean>((resolve) => {
+            Alert.alert(
+              'Confirmar exclusão',
+              confirmMessage,
+              [
+                { text: 'Cancelar', onPress: () => resolve(false), style: 'cancel' },
+                { text: 'Excluir', onPress: () => resolve(true), style: 'destructive' }
+              ]
+            );
+          });
+
+      if (confirmed) {
+        await deleteCharacter(objectId);
+        Alert.alert('Sucesso', 'Personagem excluído com sucesso!');
       }
+    } catch (error) {
+      console.error('Erro ao deletar personagem:', error);
+      Alert.alert('Erro', 'Não foi possível excluir o personagem');
     }
   };
 

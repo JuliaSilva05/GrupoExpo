@@ -115,16 +115,9 @@ export default function CreateScreen() {
     setAntecedenteDetalhes(detalhes);
   }
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    
-    if (!isLoggedIn) {
-      Alert.alert('Erro', 'Você precisa estar logado para criar um personagem.');
-      return;
-    }
-
-    if (!userId) {
-      Alert.alert('Erro', 'ID do usuário não encontrado. Por favor, faça login novamente.');
+  const handleSubmit = async () => {
+    if (!isLoggedIn || !userId) {
+      alert('Você precisa estar logado para criar um personagem!');
       return;
     }
 
@@ -134,45 +127,34 @@ export default function CreateScreen() {
     }
 
     try {
-      console.log('Estado atual do usuário:', { isLoggedIn, userId });
-      console.log('Formulário atual:', form);
-      
       const personagemCompleto = {
-        nome: form.nome,
-        raca: form.raca,
-        classe: form.classe,
-        antecedente: form.antecedente,
-        background: form.background,
+        ...form,
+        racaDetalhes: racaDetalhes,
+        classeDetalhes: classeDetalhes,
+        antecedenteDetalhes: antecedenteDetalhes,
         usuarioId: userId,
       };
-
-      console.log('Tentando criar/atualizar personagem:', personagemCompleto);
 
       if (editando) {
         const atualizado = await updatePersonagem({ ...personagemCompleto, objectId: editando });
         if (atualizado) {
+          await updateCharacter(atualizado);
           setEditando(null);
-          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: userId });
+          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
           setRacaDetalhes(null);
           setClasseDetalhes(null);
           setAntecedenteDetalhes(null);
-          updateCharacter(atualizado);
-          alert('Personagem atualizado com sucesso!');
         }
       } else {
-        const novoPersonagem = await addPersonagem(personagemCompleto);
-        if (novoPersonagem) {
-          setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: userId });
-          setRacaDetalhes(null);
-          setClasseDetalhes(null);
-          setAntecedenteDetalhes(null);
-          addCharacter(novoPersonagem);
-          alert('Personagem criado com sucesso!');
-        }
+        await addCharacter(personagemCompleto);
+        setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
+        setRacaDetalhes(null);
+        setClasseDetalhes(null);
+        setAntecedenteDetalhes(null);
       }
-    } catch (error: any) {
-      console.error('Erro ao salvar personagem:', error.response?.data || error.message);
-      Alert.alert('Erro', 'Não foi possível salvar o personagem. Tente novamente.');
+    } catch (error) {
+      console.error('Erro ao salvar personagem:', error);
+      alert('Erro ao salvar personagem. Tente novamente.');
     }
   };
 
