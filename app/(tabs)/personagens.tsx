@@ -3,7 +3,7 @@ import { getAntecedenteDetalhes, getAntecedentes, getClasseDetalhes, getClasses,
 import { useUserStore } from '@/store/userStore';
 import { useCharacterStore } from '@/store/characterStore';
 import React, { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity, Modal } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, TextInput, View, Text, TouchableOpacity, Modal, KeyboardAvoidingView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 interface Personagem {
@@ -225,142 +225,18 @@ export default function PersonagensScreen() {
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        {editando ? (
-          <View style={styles.headerContent}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => {
-                setEditando(null);
-                setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
-                setRacaDetalhes(null);
-                setClasseDetalhes(null);
-                setAntecedenteDetalhes(null);
-              }}
-            >
-              <Text style={styles.backButtonText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerText}>EDITAR PERSONAGEM</Text>
-          </View>
-        ) : (
-          <Text style={styles.headerText}>PERSONAGENS</Text>
-        )}
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          {!isLoggedIn ? (
-            <View style={styles.loginRequired}>
-              <Text style={styles.topicText}>Login Necessário</Text>
-              <Text style={styles.normalText}>
-                Você precisa estar logado para ver e gerenciar seus personagens.
-              </Text>
-            </View>
-          ) : editando ? (
-            <View style={styles.editContainer}>
-              <Text style={styles.topicText}>Editar Personagem</Text>
-              
-              <Text style={styles.normalText}>Nome:</Text>
-              <TextInput
-                style={styles.form}
-                value={form.nome}
-                onChangeText={(text) => setForm({ ...form, nome: text })}
-              />
-
-              <Text style={styles.normalText}>Raça:</Text>
-              <Picker 
-                onValueChange={carregarRacaDetalhes} 
-                selectedValue={form.raca} 
-                style={styles.form}
-                dropdownIconColor="rgb(62, 39, 35)"
-                itemStyle={{ color: 'black' }}
-              >
-                <Picker.Item value={''} label='Selecione uma raça'/>
-                {racas.map(raca => (
-                  <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
-                ))}
-              </Picker>
-              
-              {racaDetalhes && 
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.topicText}>{racaDetalhes.name}</Text>
-                  <Text style={styles.normalText}>
-                    Velocidade: {racaDetalhes.speed}{'\n'}
-                    Idade: {racaDetalhes.age}{'\n'}
-                    Alinhamento: {racaDetalhes.alignment}{'\n'}
-                    Tamanho: {racaDetalhes.size_description}
-                  </Text>
-                </View>
-              }
-
-              <Text style={styles.normalText}>Classe:</Text>
-              <Picker 
-                onValueChange={carregarClasseDetalhes} 
-                selectedValue={form.classe} 
-                style={styles.form}
-                dropdownIconColor="rgb(62, 39, 35)"
-                itemStyle={{ color: 'black' }}
-              >
-                <Picker.Item value={''} label='Selecione uma classe'/>
-                {classes.map(classe => (
-                  <Picker.Item key={classe.index} value={classe.index} label={classe.name}/>
-                ))}
-              </Picker>
-              
-              {classeDetalhes && (
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.topicText}>{classeDetalhes.name}</Text>
-                  <Text style={styles.normalText}>
-                    Dados de vida: {classeDetalhes.hit_die}{'\n'}
-                    Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
-                  </Text>
-                </View>
-              )}
-
-              <Text style={styles.normalText}>Antecedente:</Text>
-              <Picker 
-                onValueChange={carregarAntecedenteDetalhes} 
-                selectedValue={form.antecedente} 
-                style={styles.form}
-                dropdownIconColor="rgb(62, 39, 35)"
-                itemStyle={{ color: 'black' }}
-              >
-                <Picker.Item value={''} label='Selecione um antecedente'/>
-                {antecedentes.map(antecedente => (
-                  <Picker.Item key={antecedente.index} value={antecedente.index} label={antecedente.name}/>
-                ))}
-              </Picker>
-              
-              {antecedenteDetalhes && (
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.topicText}>{antecedenteDetalhes.name}</Text>
-                  {antecedenteDetalhes.name &&
-                    <Text style={styles.normalText}>
-                      Descrição: {antecedenteDetalhes.feature.desc}
-                    </Text>
-                  }
-                </View>
-              )}
-
-              <Text style={styles.normalText}>Background:</Text>
-              <TextInput
-                style={styles.form}
-                value={form.background}
-                onChangeText={(text) => setForm({ ...form, background: text })}
-                multiline
-                numberOfLines={4}
-              />
-
-              <View style={styles.buttonContainer}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#f5e2c0' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={80}
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, backgroundColor: '#f5e2c0' }}>
+        <View style={styles.root}>
+          <View style={styles.header}>
+            {editando ? (
+              <View style={styles.headerContent}>
                 <TouchableOpacity
-                  style={[styles.button, styles.primaryButton]}
-                  onPress={handleUpdate}
-                >
-                  <Text style={styles.buttonText}>Salvar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.secondaryButton]}
+                  style={styles.backButton}
                   onPress={() => {
                     setEditando(null);
                     setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
@@ -369,46 +245,176 @@ export default function PersonagensScreen() {
                     setAntecedenteDetalhes(null);
                   }}
                 >
-                  <Text style={styles.buttonText}>Cancelar</Text>
+                  <Text style={styles.backButtonText}>←</Text>
                 </TouchableOpacity>
+                <Text style={styles.headerText}>EDITAR PERSONAGEM</Text>
               </View>
-            </View>
-          ) : (
-            <View style={styles.listContainer}>
-              <Text style={styles.topicText}>Seus Personagens</Text>
-              {characters.map((p) => (
-                <View key={p.objectId} style={styles.personagemCard}>
-                  <Text style={styles.normalText}>
-                    {p.nome}{'\n'}
-                    Raça: {p.racaDetalhes?.name || p.raca}{'\n'}
-                    Classe: {p.classeDetalhes?.name || p.classe}{'\n'}
-                    Antecedente: {p.antecedenteDetalhes?.name || p.antecedente}{'\n'}
-                    Background: {p.background}
-                  </Text>
-                  <View style={styles.buttonContainer}>
-                    <TouchableOpacity
-                      style={[styles.button, styles.primaryButton]}
-                      onPress={() => handleView(p)}
-                    >
-                      <Text style={styles.buttonText}>Visualizar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.button, styles.primaryButton]}
-                      onPress={() => handleEdit(p)}
-                    >
-                      <Text style={styles.buttonText}>Editar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.button, styles.secondaryButton]}
-                      onPress={() => handleDelete(p.objectId)}
-                    >
-                      <Text style={styles.buttonText}>Deletar</Text>
-                    </TouchableOpacity>
+            ) : (
+              <Text style={styles.headerText}>PERSONAGENS</Text>
+            )}
+          </View>
+
+          <View style={styles.container}>
+            {!isLoggedIn ? (
+              <View style={styles.loginRequired}>
+                <Text style={styles.topicText}>Login Necessário</Text>
+                <Text style={styles.normalText}>
+                  Você precisa estar logado para ver e gerenciar seus personagens.
+                </Text>
+              </View>
+            ) : editando ? (
+              <View style={styles.editContainer}>
+                <Text style={styles.topicText}>Editar Personagem</Text>
+                
+                <Text style={styles.normalText}>Nome:</Text>
+                <TextInput
+                  style={styles.form}
+                  value={form.nome}
+                  onChangeText={(text) => setForm({ ...form, nome: text })}
+                />
+
+                <Text style={styles.normalText}>Raça:</Text>
+                <Picker 
+                  onValueChange={carregarRacaDetalhes} 
+                  selectedValue={form.raca} 
+                  style={styles.form}
+                  dropdownIconColor="rgb(62, 39, 35)"
+                  itemStyle={{ color: 'black' }}
+                >
+                  <Picker.Item value={''} label='Selecione uma raça'/>
+                  {racas.map(raca => (
+                    <Picker.Item key={raca.index} value={raca.index} label={raca.name}/>
+                  ))}
+                </Picker>
+                
+                {racaDetalhes && 
+                  <View style={styles.detailsContainer}>
+                    <Text style={styles.topicText}>{racaDetalhes.name}</Text>
+                    <Text style={styles.normalText}>
+                      Velocidade: {racaDetalhes.speed}{'\n'}
+                      Idade: {racaDetalhes.age}{'\n'}
+                      Alinhamento: {racaDetalhes.alignment}{'\n'}
+                      Tamanho: {racaDetalhes.size_description}
+                    </Text>
                   </View>
+                }
+
+                <Text style={styles.normalText}>Classe:</Text>
+                <Picker 
+                  onValueChange={carregarClasseDetalhes} 
+                  selectedValue={form.classe} 
+                  style={styles.form}
+                  dropdownIconColor="rgb(62, 39, 35)"
+                  itemStyle={{ color: 'black' }}
+                >
+                  <Picker.Item value={''} label='Selecione uma classe'/>
+                  {classes.map(classe => (
+                    <Picker.Item key={classe.index} value={classe.index} label={classe.name}/>
+                  ))}
+                </Picker>
+                
+                {classeDetalhes && (
+                  <View style={styles.detailsContainer}>
+                    <Text style={styles.topicText}>{classeDetalhes.name}</Text>
+                    <Text style={styles.normalText}>
+                      Dados de vida: {classeDetalhes.hit_die}{'\n'}
+                      Proficiências Iniciais: {classeDetalhes.proficiency_choices?.[0]?.desc}
+                    </Text>
+                  </View>
+                )}
+
+                <Text style={styles.normalText}>Antecedente:</Text>
+                <Picker 
+                  onValueChange={carregarAntecedenteDetalhes} 
+                  selectedValue={form.antecedente} 
+                  style={styles.form}
+                  dropdownIconColor="rgb(62, 39, 35)"
+                  itemStyle={{ color: 'black' }}
+                >
+                  <Picker.Item value={''} label='Selecione um antecedente'/>
+                  {antecedentes.map(antecedente => (
+                    <Picker.Item key={antecedente.index} value={antecedente.index} label={antecedente.name}/>
+                  ))}
+                </Picker>
+                
+                {antecedenteDetalhes && (
+                  <View style={styles.detailsContainer}>
+                    <Text style={styles.topicText}>{antecedenteDetalhes.name}</Text>
+                    {antecedenteDetalhes.name &&
+                      <Text style={styles.normalText}>
+                        Descrição: {antecedenteDetalhes.feature.desc}
+                      </Text>
+                    }
+                  </View>
+                )}
+
+                <Text style={styles.normalText}>Background:</Text>
+                <TextInput
+                  style={styles.form}
+                  value={form.background}
+                  onChangeText={(text) => setForm({ ...form, background: text })}
+                  multiline
+                  numberOfLines={4}
+                />
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.primaryButton]}
+                    onPress={handleUpdate}
+                  >
+                    <Text style={styles.buttonText}>Salvar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.secondaryButton]}
+                    onPress={() => {
+                      setEditando(null);
+                      setForm({ nome: '', raca: '', classe: '', antecedente: '', background: '', usuarioId: '' });
+                      setRacaDetalhes(null);
+                      setClasseDetalhes(null);
+                      setAntecedenteDetalhes(null);
+                    }}
+                  >
+                    <Text style={styles.buttonText}>Cancelar</Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </View>
-          )}
+              </View>
+            ) : (
+              <View style={styles.listContainer}>
+                <Text style={styles.topicText}>Seus Personagens</Text>
+                {characters.map((p) => (
+                  <View key={p.objectId} style={styles.personagemCard}>
+                    <Text style={styles.normalText}>
+                      {p.nome}{'\n'}
+                      Raça: {p.racaDetalhes?.name || p.raca}{'\n'}
+                      Classe: {p.classeDetalhes?.name || p.classe}{'\n'}
+                      Antecedente: {p.antecedenteDetalhes?.name || p.antecedente}{'\n'}
+                      Background: {p.background}
+                    </Text>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={[styles.button, styles.primaryButton]}
+                        onPress={() => handleView(p)}
+                      >
+                        <Text style={styles.buttonText}>Visualizar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.primaryButton]}
+                        onPress={() => handleEdit(p)}
+                      >
+                        <Text style={styles.buttonText}>Editar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.secondaryButton]}
+                        onPress={() => handleDelete(p.objectId)}
+                      >
+                        <Text style={styles.buttonText}>Deletar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 
@@ -480,7 +486,7 @@ export default function PersonagensScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
