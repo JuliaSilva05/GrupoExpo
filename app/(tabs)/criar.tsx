@@ -206,16 +206,18 @@ export default function CreateScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: 'rgb(228, 202, 164)' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={0}
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <View style={styles.root}>
           <View style={styles.header}>
             <Text style={styles.headerText}>CRIAR PERSONAGEM</Text>
           </View>
+
+          <KeyboardAvoidingView
+          style={{ flex: 1, backgroundColor: 'rgb(228, 202, 164)' }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+          >
+
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
 
           <View style={styles.container}>
             {!isLoggedIn ? (
@@ -347,14 +349,15 @@ export default function CreateScreen() {
               </>
             )}
           </View>
+          </ScrollView>
+          </KeyboardAvoidingView>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
+    flex : 1,
     backgroundColor: 'rgb(228, 202, 164)',
     borderBottomWidth: 2,
     borderBottomColor: 'rgb(93, 64, 55)',
@@ -465,3 +468,4 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 });
+
